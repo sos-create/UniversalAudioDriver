@@ -15,6 +15,14 @@ internal static class Program
 
         try
         {
+            if (args.Any(a => string.Equals(a, "--test-tone", StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine("Playing a short, low-volume test tone through the current default playback device...");
+                new AudioPlaybackTest().PlayDefaultEndpointTone();
+                Console.WriteLine("Test tone finished.");
+                return 0;
+            }
+
             var discovery = new WindowsAudioDiscovery();
             var devices = discovery.Scan();
             var services = discovery.ScanServices();
@@ -53,7 +61,7 @@ internal static class Program
                 Console.WriteLine($"  {service.DisplayName}: {service.State} (startup: {service.StartMode})");
             Console.WriteLine();
 
-            var output = args.Length > 0 ? args[0] : "audio-discovery.json";
+            var output = args.FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal)) ?? "audio-discovery.json";
             var snapshot = new { Devices = assessments, PlaybackEndpoints = endpoints, Services = services };
             var json = JsonSerializer.Serialize(snapshot,
                 new JsonSerializerOptions { WriteIndented = true });
