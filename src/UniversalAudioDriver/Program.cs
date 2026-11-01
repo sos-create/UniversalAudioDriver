@@ -9,12 +9,24 @@ internal static class Program
     private static int Main(string[] args)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
-        Console.WriteLine("Universal Audio Driver - hardware discovery");
-        Console.WriteLine("Windows 10/11 | read-only scan");
+        Console.WriteLine("Universal Audio Driver - hardware discovery and recovery");
+        Console.WriteLine("Windows 10/11");
         Console.WriteLine();
 
         try
         {
+            if (args.Any(a => string.Equals(a, "--rescan-pnp", StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine("Requesting a Windows Plug and Play device rescan.");
+                Console.WriteLine("Windows may ask for administrator permission.");
+                Console.WriteLine("This does not force-install or replace any driver.");
+                var exitCode = new WindowsPnpRecovery().RescanDevices();
+                Console.WriteLine(exitCode == 0
+                    ? "Windows Plug and Play rescan completed."
+                    : $"PnPUtil returned exit code {exitCode}.");
+                return exitCode;
+            }
+
             if (args.Any(a => string.Equals(a, "--test-tone", StringComparison.OrdinalIgnoreCase)))
             {
                 Console.WriteLine("Playing a short, low-volume test tone through the current default playback device...");
@@ -69,12 +81,12 @@ internal static class Program
 
             Console.WriteLine($"Detected devices: {devices.Count}");
             Console.WriteLine($"Machine-readable results saved to: {Path.GetFullPath(output)}");
-            Console.WriteLine("No drivers, services, registry entries or device settings were changed.");
+            Console.WriteLine("Discovery is read-only. Use --rescan-pnp to explicitly request a Windows PnP rescan.");
             return 0;
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Discovery failed: {ex.Message}");
+            Console.Error.WriteLine($"Operation failed: {ex.Message}");
             return 1;
         }
     }
