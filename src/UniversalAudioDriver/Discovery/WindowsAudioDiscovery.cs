@@ -12,6 +12,29 @@ public sealed class WindowsAudioDiscovery
         "Name LIKE '%Realtek%' OR Name LIKE '%Conexant%' OR " +
         "Name LIKE '%Cirrus%' OR Name LIKE '%Intel(R) Smart Sound%'";
 
+    public IReadOnlyList<AudioServiceInfo> ScanServices()
+    {
+        EnsureWindows();
+        var services = new List<AudioServiceInfo>();
+        using var searcher = new ManagementObjectSearcher(
+            "root\\CIMV2",
+            "SELECT Name, DisplayName, State, StartMode FROM Win32_Service " +
+            "WHERE Name = 'Audiosrv' OR Name = 'AudioEndpointBuilder'");
+        using var results = searcher.Get();
+        foreach (ManagementObject item in results)
+        {
+            using (item)
+            {
+                services.Add(new AudioServiceInfo(
+                    ReadString(item, "Name") ?? "Unknown",
+                    ReadString(item, "DisplayName") ?? "Unknown",
+                    ReadString(item, "State") ?? "Unknown",
+                    ReadString(item, "StartMode") ?? "Unknown"));
+            }
+        }
+        return services.OrderBy(s => s.Name).ToArray();
+    }
+
     public IReadOnlyList<AudioDeviceInfo> Scan()
     {
         EnsureWindows();
