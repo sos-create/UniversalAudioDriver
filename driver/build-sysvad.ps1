@@ -21,7 +21,9 @@ if (-not (Test-Path $Solution)) {
     throw "SysVAD solution was not found. Check the Microsoft sample checkout."
 }
 
-$MsBuildPath = (Get-Command msbuild.exe -ErrorAction SilentlyContinue)?.Source
+$MsBuildCommand = Get-Command msbuild.exe -ErrorAction SilentlyContinue
+$MsBuildPath = $null
+if ($MsBuildCommand) { $MsBuildPath = $MsBuildCommand.Source }
 if (-not $MsBuildPath) {
     $VsWhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
     if (Test-Path $VsWhere) {
