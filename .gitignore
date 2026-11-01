@@ -1,0 +1,25 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.VC.opendb
+Debug/
+Release/
+x64/
+x86/
+
+# Build output
+bin/
+obj/
+out/
+
+# Local diagnostic reports
+UniversalAudioDriver-*.txt
+*.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+.venv/
+venv/
