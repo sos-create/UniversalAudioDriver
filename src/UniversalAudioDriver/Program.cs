@@ -18,6 +18,7 @@ internal static class Program
             var discovery = new WindowsAudioDiscovery();
             var devices = discovery.Scan();
             var services = discovery.ScanServices();
+            var endpoints = new CoreAudioEndpointDiscovery().ScanRenderEndpoints();
             var assessments = new AudioCompatibilityEngine().Assess(devices);
 
             if (assessments.Count == 0)
@@ -37,13 +38,23 @@ internal static class Program
                 }
             }
 
+            Console.WriteLine("Windows playback endpoints (Core Audio):");
+            foreach (var endpoint in endpoints)
+            {
+                var volume = endpoint.MasterVolumePercent is null ? "unavailable" : $"{endpoint.MasterVolumePercent:0}%";
+                var mute = endpoint.IsMuted is null ? "unknown" : endpoint.IsMuted.Value ? "muted" : "not muted";
+                Console.WriteLine($"  [{endpoint.State}] {endpoint.Name}");
+                Console.WriteLine($"    Default role: {endpoint.Role}; volume: {volume}; {mute}");
+            }
+            Console.WriteLine();
+
             Console.WriteLine("Windows audio services:");
             foreach (var service in services)
                 Console.WriteLine($"  {service.DisplayName}: {service.State} (startup: {service.StartMode})");
             Console.WriteLine();
 
             var output = args.Length > 0 ? args[0] : "audio-discovery.json";
-            var snapshot = new { Devices = assessments, Services = services };
+            var snapshot = new { Devices = assessments, PlaybackEndpoints = endpoints, Services = services };
             var json = JsonSerializer.Serialize(snapshot,
                 new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(output, json);
