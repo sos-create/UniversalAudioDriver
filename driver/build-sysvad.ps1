@@ -21,24 +21,24 @@ if (-not (Test-Path $Solution)) {
     throw "SysVAD solution was not found. Check the Microsoft sample checkout."
 }
 
-$MsBuild = Get-Command msbuild.exe -ErrorAction SilentlyContinue
-if (-not $MsBuild) {
+$MsBuildPath = (Get-Command msbuild.exe -ErrorAction SilentlyContinue)?.Source
+if (-not $MsBuildPath) {
     $VsWhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
     if (Test-Path $VsWhere) {
         $VsPath = & $VsWhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
         if ($VsPath) {
             $Candidate = Join-Path $VsPath "MSBuild\Current\Bin\MSBuild.exe"
-            if (Test-Path $Candidate) { $MsBuild = Get-Item $Candidate }
+            if (Test-Path $Candidate) { $MsBuildPath = $Candidate }
         }
     }
 }
 
-if (-not $MsBuild) {
+if (-not $MsBuildPath) {
     throw "MSBuild was not found. Install Visual Studio Build Tools with C++ tools and the Windows Driver Kit (WDK)."
 }
 
 Write-Host "Building Microsoft SysVAD foundation: $Configuration / $Platform"
-& $MsBuild.Source $Solution /m /p:Configuration=$Configuration /p:Platform=$Platform /p:SignMode=Off /verbosity:minimal
+& $MsBuildPath $Solution /m /p:Configuration=$Configuration /p:Platform=$Platform /p:SignMode=Off /verbosity:minimal
 if ($LASTEXITCODE -ne 0) {
     throw "SysVAD build failed with exit code $LASTEXITCODE. Check that the matching WDK and C++ build tools are installed."
 }
