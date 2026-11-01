@@ -15,7 +15,9 @@ internal static class Program
 
         try
         {
-            var devices = new WindowsAudioDiscovery().Scan();
+            var discovery = new WindowsAudioDiscovery();
+            var devices = discovery.Scan();
+            var services = discovery.ScanServices();
             var assessments = new AudioCompatibilityEngine().Assess(devices);
 
             if (assessments.Count == 0)
@@ -35,8 +37,14 @@ internal static class Program
                 }
             }
 
+            Console.WriteLine("Windows audio services:");
+            foreach (var service in services)
+                Console.WriteLine($"  {service.DisplayName}: {service.State} (startup: {service.StartMode})");
+            Console.WriteLine();
+
             var output = args.Length > 0 ? args[0] : "audio-discovery.json";
-            var json = JsonSerializer.Serialize(assessments,
+            var snapshot = new { Devices = assessments, Services = services };
+            var json = JsonSerializer.Serialize(snapshot,
                 new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(output, json);
 
