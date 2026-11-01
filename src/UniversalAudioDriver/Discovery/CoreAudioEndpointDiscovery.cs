@@ -17,7 +17,8 @@ public sealed class CoreAudioEndpointDiscovery
         ReadDefault(enumerator, Role.Multimedia, "Multimedia", defaultIds);
         ReadDefault(enumerator, Role.Communications, "Communications", defaultIds);
 
-        using var collection = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.All);
+        // MMDeviceCollection in NAudio 2.2.1 is not IDisposable.
+        var collection = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.All);
         foreach (var device in collection)
         {
             using (device)
