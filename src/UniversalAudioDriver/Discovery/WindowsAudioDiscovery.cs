@@ -10,7 +10,37 @@ public sealed class WindowsAudioDiscovery
         "PNPClass = 'SoftwareComponent' OR Name LIKE '%Audio%' OR " +
         "Name LIKE '%Sound%' OR Name LIKE '%Speaker%' OR " +
         "Name LIKE '%Realtek%' OR Name LIKE '%Conexant%' OR " +
-        "Name LIKE '%Cirrus%' OR Name LIKE '%Intel(R) Smart Sound%'";
+        "Name LIKE '%Cirrus%' OR Name LIKE '%Intel(R) Smart Sound%' OR " +
+        "Name LIKE '%Dolby%' OR Name LIKE '%DTS%' OR Name LIKE '%Nahimic%'";
+
+    private static readonly (string Id, string Name)[] PciVendors =
+    {
+        ("VEN_10EC", "Realtek"),
+        ("VEN_8086", "Intel"),
+        ("VEN_1022", "AMD"),
+        ("VEN_1002", "AMD (ATI)"),
+        ("VEN_10DE", "NVIDIA"),
+        ("VEN_14F1", "Conexant"),
+        ("VEN_1013", "Cirrus Logic"),
+        ("VEN_101A", "Cirrus Logic"),
+        ("VEN_1102", "Creative"),
+        ("VEN_1106", "VIA"),
+        ("VEN_0D8C", "C-Media"),
+        ("VEN_125D", "ESS Technology"),
+        ("VEN_11D4", "Analog Devices"),
+        ("VEN_111D", "IDT"),
+        ("VEN_8384", "SigmaTel"),
+        ("VEN_13F6", "C-Media"),
+        ("VEN_14C3", "MediaTek"),
+        ("VEN_17CB", "Qualcomm"),
+        ("VEN_1FC9", "NXP"),
+        ("VEN_1043", "ASUS"),
+        ("VEN_1025", "Acer"),
+        ("VEN_17AA", "Lenovo"),
+        ("VEN_103C", "HP"),
+        ("VEN_144D", "Samsung"),
+        ("VEN_1B21", "ASMedia")
+    };
 
     public IReadOnlyList<AudioServiceInfo> ScanServices()
     {
@@ -54,12 +84,14 @@ public sealed class WindowsAudioDiscovery
                     continue;
 
                 var hardwareIds = ReadStringArray(item, "HardwareID");
+                var name = ReadString(item, "Name") ?? "(unnamed device)";
                 var driver = FindDriver(id);
+                var classification = Classify(id, hardwareIds, name, driver.Provider);
 
                 devices.Add(new AudioDeviceInfo(
-                    ReadString(item, "Name") ?? "(unnamed device)",
+                    name,
                     id,
-                    ReadString(item, "Manufacturer"),
+                    ReadString(item, "Manufacturer") ?? classification.Vendor,
                     ReadString(item, "PNPClass"),
                     ReadString(item, "Service"),
                     driver.Provider,
@@ -67,12 +99,14 @@ public sealed class WindowsAudioDiscovery
                     driver.InfName,
                     ReadString(item, "Status") ?? "Unknown",
                     ReadUInt(item, "ConfigManagerErrorCode"),
-                    Classify(id, hardwareIds, ReadString(item, "Name")),
+                    classification.Family,
                     hardwareIds));
             }
         }
 
         return devices
+            .GroupBy(d => d.DeviceId, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
             .OrderBy(d => d.PnpClass)
             .ThenBy(d => d.Name)
             .ToArray();
@@ -111,27 +145,68 @@ public sealed class WindowsAudioDiscovery
         return (null, null, null);
     }
 
-    private static string Classify(string deviceId, IReadOnlyList<string> ids, string? name)
+    private static (string Vendor, string Family) Classify(
+        string deviceId,
+        IReadOnlyList<string> ids,
+        string? name,
+        string? driverProvider)
     {
-        var all = string.Join(" ", ids.Append(deviceId).Append(name ?? "")).ToUpperInvariant();
+        var all = string.Join(" ", ids.Append(deviceId).Append(name ?? "")
+            .Append(driverProvider ?? "")).ToUpperInvariant();
 
-        if (all.Contains("INTELAUDIO") || all.Contains("SMART SOUND") ||
-            all.Contains("VEN_8086") && all.Contains("DEV_"))
-            return "Intel audio / SST candidate";
-        if (all.Contains("HDAUDIO") || all.Contains("VEN_10EC"))
-            return "HD Audio / Realtek candidate";
-        if (all.Contains("VEN_14F1") || all.Contains("CONEXANT"))
-            return "Conexant candidate";
-        if (all.Contains("VEN_1013") || all.Contains("CIRRUS"))
-            return "Cirrus Logic candidate";
-        if (all.Contains("USB"))
-            return "USB audio";
-        if (all.Contains("BTH") || all.Contains("BLUETOOTH"))
+        var vendor = PciVendors.FirstOrDefault(v => all.Contains(v.Id)).Name;
+        if (string.IsNullOrWhiteSpace(vendor))
+            vendor = DetectNamedVendor(all) ?? driverProvider ?? "Unknown vendor";
+
+        var architecture = DetectArchitecture(all);
+        return (vendor, $"{vendor} / {architecture}");
+    }
+
+    private static string? DetectNamedVendor(string value)
+    {
+        string[] vendors =
+        {
+            "REALTEK", "CONEXANT", "CIRRUS", "CREATIVE", "SOUND BLASTER",
+            "C-MEDIA", "CMEDIA", "VIA", "ESS TECHNOLOGY", "ANALOG DEVICES",
+            "SIGMATEL", "QUALCOMM", "MEDIATEK", "NVIDIA", "AMD", "INTEL",
+            "DOLBY", "DTS", "NAHIMIC", "MAXX AUDIO", "WAVES"
+        };
+
+        return vendors.FirstOrDefault(value.Contains);
+    }
+
+    private static string DetectArchitecture(string value)
+    {
+        if (value.Contains("INTELAUDIO") || value.Contains("SMART SOUND") ||
+            value.Contains("SST"))
+            return "Intel Smart Sound Technology (SST)";
+        if (value.Contains("ACP") || value.Contains("AMD AUDIO"))
+            return "AMD Audio CoProcessor (ACP)";
+        if (value.Contains("SDCA"))
+            return "SoundWire SDCA";
+        if (value.Contains("SOUNDWIRE") || value.Contains("SLIMBUS"))
+            return "SoundWire / SLIMbus";
+        if (value.Contains("I2S") || value.Contains("I2C"))
+            return "I2S / I2C platform audio";
+        if (value.Contains("HDAUDIO") || value.Contains("HD AUDIO"))
+            return "Intel High Definition Audio (HDA) bus";
+        if (value.Contains("USB"))
+            return "USB Audio";
+        if (value.Contains("BTHENUM") || value.Contains("BLUETOOTH") ||
+            value.Contains("BTH\\"))
             return "Bluetooth audio";
-        if (all.Contains("ACPI"))
-            return "ACPI audio-related device";
-
-        return "Unclassified audio-related device";
+        if (value.Contains("DISPLAY") || value.Contains("HDMI") ||
+            value.Contains("DISPLAYPORT") || value.Contains("HDAUDIO"))
+            return "HDMI / DisplayPort digital audio";
+        if (value.Contains("ACPI"))
+            return "ACPI / platform-integrated audio";
+        if (value.Contains("SWD") || value.Contains("SOFTWARECOMPONENT"))
+            return "Windows software audio component / DSP";
+        if (value.Contains("PCI"))
+            return "PCI / PCI Express audio controller";
+        if (value.Contains("USB"))
+            return "USB Audio Class";
+        return "Unclassified audio architecture";
     }
 
     private static string? ReadString(ManagementBaseObject item, string property) =>
