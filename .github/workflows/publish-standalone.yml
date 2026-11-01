@@ -8,6 +8,10 @@ on:
 jobs:
   publish:
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [win-x64, win-arm64, win-x86]
     steps:
       - uses: actions/checkout@v4
 
@@ -20,17 +24,17 @@ jobs:
         run: >-
           dotnet publish src/UniversalAudioDriver/UniversalAudioDriver.csproj
           --configuration Release
-          --runtime win-x64
+          --runtime ${{ matrix.runtime }}
           --self-contained true
           -p:PublishSingleFile=true
           -p:IncludeNativeLibrariesForSelfExtract=true
           -p:EnableCompressionInSingleFile=true
-          --output ./artifacts/UniversalAudioDriver-win-x64
+          --output ./artifacts/UniversalAudioDriver-${{ matrix.runtime }}
 
       - name: Upload standalone application
         uses: actions/upload-artifact@v4
         with:
-          name: UniversalAudioDriver-win-x64
-          path: ./artifacts/UniversalAudioDriver-win-x64/
+          name: UniversalAudioDriver-${{ matrix.runtime }}
+          path: ./artifacts/UniversalAudioDriver-${{ matrix.runtime }}/
           if-no-files-found: error
           retention-days: 30
