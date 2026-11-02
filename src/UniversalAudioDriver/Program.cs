@@ -70,7 +70,11 @@ internal static class Program
                 if (installReport.WindowsUpdateDrivers.RebootRequired)
                     Console.WriteLine("Windows Update reports that a restart is required to finish driver installation.");
                 if (installReport.SpeakerTest.EndpointFound)
+                {
                     Console.WriteLine($"Built-in speaker endpoint: {installReport.SpeakerTest.EndpointName}");
+                    Console.WriteLine($"Speaker endpoint controller PnP ID: {installReport.SpeakerTest.ControllerDeviceId ?? "not exposed"}");
+                    Console.WriteLine($"Matched audio PnP device: {installReport.SpeakerTest.MatchedPnpDeviceName ?? "not matched in audio inventory"}");
+                }
                 if (installReport.DefaultPlaybackEndpoint is { } defaultPlayback)
                 {
                     Console.WriteLine($"Windows default playback: {defaultPlayback.Status}");
@@ -180,6 +184,7 @@ internal static class Program
                 var volume = endpoint.MasterVolumePercent is null ? "unavailable" : $"{endpoint.MasterVolumePercent:0}%";
                 var mute = endpoint.IsMuted is null ? "unknown" : endpoint.IsMuted.Value ? "muted" : "not muted";
                 Console.WriteLine($"  [{endpoint.State}] {endpoint.Name}");
+                Console.WriteLine($"    Form factor: {endpoint.FormFactor}; controller PnP ID: {endpoint.ControllerDeviceId ?? "not exposed"}");
                 Console.WriteLine($"    Default role: {endpoint.Role}; volume: {volume}; {mute}");
             }
             Console.WriteLine();
