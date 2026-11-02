@@ -21,14 +21,14 @@ public static class DriverPackageInstallPlanner
         // controller/codec base drivers so their OEM property overrides land last.
         if (infClass.Equals("Extension", StringComparison.OrdinalIgnoreCase) ||
             infClass.Equals("SoftwareComponent", StringComparison.OrdinalIgnoreCase) ||
-            ids.Contains(@"SWC\\"))
+            ids.Contains(@"SWC\"))
             return (4, "OEM extension / software component");
 
         // Parent PCI controllers and the AMD ACP platform device must be staged
         // before serial-bus codecs and HDAudio function devices.
         if ((infClass.Equals("System", StringComparison.OrdinalIgnoreCase) &&
-             ids.Contains(@"PCI\\")) ||
-            ids.Contains(@"PCI\\VEN_1022&DEV_15E2") ||
+             ids.Contains(@"PCI\")) ||
+            ids.Contains(@"PCI\VEN_1022&DEV_15E2") ||
             ids.Contains("AMD ACP") ||
             ids.Contains("AMD AUDIO COPROCESSOR"))
             return (0, "Platform controller");
@@ -50,7 +50,7 @@ public static class DriverPackageInstallPlanner
     private static string ReadVersionClass(string infContents)
     {
         var inVersion = false;
-        foreach (var rawLine in infContents.Split(new[] { '\\r', '\\n' },
+        foreach (var rawLine in infContents.Split(new[] { '\r', '\n' },
                      StringSplitOptions.RemoveEmptyEntries))
         {
             var line = rawLine.Trim();
@@ -80,16 +80,16 @@ public static class DriverPackageInstallPlanner
     public static void RunSelfTests()
     {
         var controller = Classify(
-            "[Version]\\r\\nClass=System\\r\\n[Models]\\r\\n",
+            "[Version]\r\nClass=System\r\n[Models]\r\n",
             new[] { @"PCI\VEN_8086&DEV_9D70" });
         var transport = Classify(
-            "[Version]\\r\\nClass=MEDIA\\r\\n",
+            "[Version]\r\nClass=MEDIA\r\n",
             new[] { @"SOUNDWIRE\01" });
         var codec = Classify(
-            "[Version]\\r\\nClass=MEDIA\\r\\n",
+            "[Version]\r\nClass=MEDIA\r\n",
             new[] { @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256" });
         var extension = Classify(
-            "[Version]\\r\\nClass=Extension\\r\\n",
+            "[Version]\r\nClass=Extension\r\n",
             new[] { @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256" });
 
         if (controller.Order >= transport.Order ||
