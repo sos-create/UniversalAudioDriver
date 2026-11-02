@@ -258,11 +258,17 @@ public sealed class WindowsUpdateDriverInstaller
     public static void RunSelfTests()
     {
         var ids = new HashSet<string>(
-            new[] { @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256", @"HDAUDIO\FUNC_01&VEN_10EC" },
+            new[]
+            {
+                @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256",
+                @"HDAUDIO\FUNC_01&VEN_10EC",
+                @"PCI\VEN_8086&DEV_9D70"
+            },
             StringComparer.OrdinalIgnoreCase);
 
         if (!MatchesExactHardwareId(ids, @"hdaudio\func_01&ven_10ec&dev_0256") ||
             !MatchesExactHardwareId(ids, @"HDAUDIO\FUNC_01&VEN_10EC") ||
+            !MatchesExactHardwareId(ids, @"PCI\VEN_8086&DEV_9D70") ||
             MatchesExactHardwareId(ids, @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256&SUBSYS_12345678"))
         {
             throw new InvalidOperationException("Windows Update exact hardware ID matcher self-test failed.");
