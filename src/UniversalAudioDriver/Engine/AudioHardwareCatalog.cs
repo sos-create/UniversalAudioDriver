@@ -207,7 +207,7 @@ public static class AudioHardwareCatalog
         AssertVendor(@"HDAUDIO\FUNC_01&VEN_125D", "ESS Technology");
 
         AssertCodec("Realtek ALC295", "Realtek ALC series");
-        AssertCodec(@"HDAUDIO\\FUNC_01&VEN_10EC&DEV_0256 ALC 256", "Realtek ALC series");
+        AssertCodec(@"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256 ALC 256", "Realtek ALC series");
         AssertCodec("RT5682", "Realtek RT56xx");
         AssertCodec("RT5640", "Realtek RT56xx");
         AssertCodec("RT5651", "Realtek RT56xx");
