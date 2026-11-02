@@ -24,6 +24,6 @@ A matching OEM controller/codec/amplifier driver or a hardware-specific miniport
 and topology implementation is still required. When Windows Update installs a
 matching driver and reports that a restart is required, the installer returns
 a restart-required status; restart Windows and run the installer again to verify
-the speaker endpoint. A short test tone confirms that Windows accepted audio playback
-on the selected endpoint; it does not prove every
+the speaker endpoint. A short WASAPI test confirms that Windows accepted an audio stream
+on the selected endpoint; it cannot measure acoustic output or prove every
 speaker, jack, microphone, power-state or sleep/resume path.
