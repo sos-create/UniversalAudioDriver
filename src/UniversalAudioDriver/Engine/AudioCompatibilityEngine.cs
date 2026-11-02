@@ -7,6 +7,17 @@ public sealed record CompatibilityAssessment(
     string DetectedFamily,
     string Result,
     string Explanation,
+    string DeviceId,
+    string? Manufacturer,
+    string? PnpClass,
+    string? Service,
+    string? DriverProvider,
+    string? DriverVersion,
+    string? InfName,
+    string DeviceStatus,
+    uint ProblemCode,
+    IReadOnlyList<string> HardwareIds,
+    IReadOnlyList<string> CompatibleIds,
     IReadOnlyList<string> ParentDeviceIds,
     AudioHardwareProfile HardwareProfile,
     IReadOnlyList<string> NextChecks);
@@ -61,6 +72,10 @@ public sealed class AudioCompatibilityEngine
 
             return new CompatibilityAssessment(
                 device.Name, device.Family, result, explanation,
+                device.DeviceId, device.Manufacturer, device.PnpClass,
+                device.Service, device.DriverProvider, device.DriverVersion,
+                device.InfName, device.Status, device.ProblemCode,
+                device.HardwareIds, device.CompatibleIds,
                 device.ParentDeviceIds, profile, checks);
         }).ToArray();
     }
