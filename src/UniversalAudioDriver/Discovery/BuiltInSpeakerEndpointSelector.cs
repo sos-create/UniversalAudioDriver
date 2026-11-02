@@ -10,7 +10,7 @@ public static class BuiltInSpeakerEndpointSelector
 {
     private static readonly string[] ExternalMarkers =
     {
-        "HDMI", "DISPLAYPORT", "BLUETOOTH", "BTHENUM", "USB AUDIO",
+        "HDMI", "DISPLAYPORT", "BLUETOOTH", "BTHENUM", "USB",
         "HEADPHONE", "HEADSET", "DOCK", "WIRELESS",
         "НАУШНИК", "ГАРНИТУР", "БЕСПРОВОД", "ДОК-СТАНЦИЯ",
         "KOPFHÖRER", "KOPFHORER", "HEADPHONES",
@@ -35,8 +35,9 @@ public static class BuiltInSpeakerEndpointSelector
         if (!string.Equals(endpoint.State, "Active", StringComparison.OrdinalIgnoreCase))
             return false;
 
-        var name = endpoint.Name.ToUpperInvariant();
-        if (ExternalMarkers.Any(name.Contains))
+        var endpointSignature = string.Join(" ",
+            endpoint.Name, endpoint.ControllerDeviceId ?? string.Empty).ToUpperInvariant();
+        if (ExternalMarkers.Any(endpointSignature.Contains))
             return false;
 
         if (endpoint.FormFactor.Equals("Speakers", StringComparison.OrdinalIgnoreCase))
@@ -84,6 +85,9 @@ public static class BuiltInSpeakerEndpointSelector
         var headphones = new AudioEndpointInfo(
             "Headphones (Realtek Audio)", "endpoint-headphones",
             "Active", "Not default", false, false, 50, "Headphones", null);
+        var usbSpeaker = new AudioEndpointInfo(
+            "Speakers (USB PnP Sound Device)", "endpoint-usb-speakers",
+            "Active", "Not default", false, false, 50, "Speakers", @"USB\\VID_1234&PID_5678");
         var disabled = new AudioEndpointInfo(
             "Speakers (Cirrus Audio)", "endpoint-disabled",
             "Disabled", "Not default", false, false, 50, "Speakers", null);
@@ -95,6 +99,7 @@ public static class BuiltInSpeakerEndpointSelector
             !IsLikelyBuiltInSpeaker(frenchBuiltIn) ||
             IsLikelyBuiltInSpeaker(hdmi) ||
             IsLikelyBuiltInSpeaker(headphones) ||
+            IsLikelyBuiltInSpeaker(usbSpeaker) ||
             IsLikelyBuiltInSpeaker(disabled) ||
             Select(new[] { hdmi, builtIn })?.Id != builtIn.Id ||
             Select(new[] { hdmi, builtIn })?.ControllerDeviceId != @"HDAUDIO\FUNC_01&VEN_10EC")
