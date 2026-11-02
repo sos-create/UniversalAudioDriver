@@ -78,9 +78,7 @@ public static class AudioHardwareCatalog
         ("MAX97", "Maxim MAX97xx codec"),
         ("DA721", "Dialog Semiconductor DA721x codec"),
         ("DA739", "Dialog Semiconductor DA739x amplifier"),
-        ("NAU", "Nuvoton audio codec"),
-        ("SST", "Intel Smart Sound DSP"),
-        ("ACP", "AMD Audio CoProcessor")
+        ("NAU", "Nuvoton audio codec")
     };
 
     private static readonly string[] AmplifierMarkers =
