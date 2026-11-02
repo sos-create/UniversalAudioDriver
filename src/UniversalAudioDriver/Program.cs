@@ -35,6 +35,18 @@ internal static class Program
                 return 0;
             }
 
+            if (args.Any(a => string.Equals(a, "--adaptive-test", StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine("Selecting an active Windows playback endpoint and adapting to its shared-mode format...");
+                var result = new AdaptiveAudioOutput().PlayTestTone();
+                Console.WriteLine($"Output: {result.EndpointName}");
+                Console.WriteLine($"Sample format: {result.SampleRate} Hz, {result.Channels} channel(s)");
+                Console.WriteLine($"Transport: {result.ShareMode}");
+                Console.WriteLine($"Selection: {result.SelectionReason}");
+                Console.WriteLine("Adaptive test tone finished.");
+                return 0;
+            }
+
             var discovery = new WindowsAudioDiscovery();
             var devices = discovery.Scan();
             var services = discovery.ScanServices();
