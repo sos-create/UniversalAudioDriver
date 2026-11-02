@@ -19,8 +19,14 @@ public static class AudioHardwareProfilePlanner
             .Concat(device.ParentHardwareIds)
             .Concat(device.ParentCompatibleIds)
             .Append(device.Name)
+            .Append(device.Manufacturer ?? string.Empty)
             .Append(device.Family))
             .ToUpperInvariant();
+        var codecFamily = AudioHardwareCatalog.DetectCodecFamily(signature);
+        var vendor = AudioHardwareCatalog.DetectVendor(signature);
+        var codecDependency = codecFamily == "Codec model not identified"
+            ? "Exact codec and amplifier model"
+            : codecFamily;
 
         if (signature.Contains("INTELAUDIO") ||
             signature.Contains("INTEL SMART SOUND") ||
@@ -32,7 +38,7 @@ public static class AudioHardwareProfilePlanner
                     "Intel SST DSP miniport + SDCA codec/topology",
                     "High",
                     "Intel SST controller and DSP firmware",
-                    "SDCA codec driver and endpoint topology",
+                    $"{codecDependency} driver and endpoint topology",
                     "Laptop OEM ACPI/firmware routing",
                     "Hardware profile identified. A matching physical-speaker miniport/topology is not included yet.");
 
@@ -42,7 +48,7 @@ public static class AudioHardwareProfilePlanner
                     "Intel SST DSP miniport + SoundWire codec/topology",
                     "High",
                     "Intel SST controller and DSP firmware",
-                    "SoundWire codec driver and link configuration",
+                    $"{codecDependency} driver and link configuration",
                     "Laptop OEM ACPI/firmware routing",
                     "Hardware profile identified. A matching physical-speaker miniport/topology is not included yet.");
 
@@ -52,8 +58,8 @@ public static class AudioHardwareProfilePlanner
                 "High",
                 "Intel SST controller driver",
                 "Matching DSP firmware and IPC implementation",
-                "Codec/amplifier topology and laptop OEM ACPI routing",
-                "Hardware profile identified. A matching physical-speaker miniport/topology is not included yet.");
+                $"{codecDependency} and laptop OEM ACPI speaker topology",
+                "Intel SST platform family selected; codec and amplifier requirements are listed separately.");
         }
 
         if (signature.Contains("VEN_1022&DEV_15E2") ||
@@ -65,7 +71,7 @@ public static class AudioHardwareProfilePlanner
                 "AMD ACP platform audio miniport",
                 "Medium",
                 "AMD ACP controller/platform driver",
-                "I2S or SoundWire codec driver",
+                $"{codecDependency} driver on I2S or SoundWire",
                 "Laptop OEM ACPI tables, amplifier and DSP firmware",
                 "Hardware profile identified. ACP hardware revision and codec-specific implementation are still required.");
         }
@@ -76,7 +82,7 @@ public static class AudioHardwareProfilePlanner
                 "SoundWire controller + SDCA codec/topology",
                 "Medium",
                 "SoundWire controller/link driver",
-                "SDCA codec driver",
+                $"{codecDependency} driver",
                 "OEM ACPI resources, clocking and amplifier routing",
                 "Protocol family identified. Controller and codec-specific implementation are not included yet.");
 
@@ -86,7 +92,7 @@ public static class AudioHardwareProfilePlanner
                 "Serial-bus audio controller and codec miniports",
                 "Medium",
                 "SoundWire/SLIMbus controller driver",
-                "Codec-specific firmware and topology",
+                $"{codecDependency} firmware and topology",
                 "OEM ACPI resources and amplifier routing",
                 "Serial audio bus identified. Exact controller and codec support is still required.");
 
@@ -96,9 +102,19 @@ public static class AudioHardwareProfilePlanner
                 "HDA bus + codec-specific PortCls miniport/topology",
                 "High",
                 "HDA bus/controller driver",
-                "Codec verb, pin-widget and amplifier route configuration",
-                "OEM codec coefficients, jack mapping and speaker topology",
-                "HDA path identified. A generic codec-independent speaker miniport is not available in this project.");
+                $"{vendor} codec implementation ({codecDependency})",
+                "Codec verbs, pin widgets, coefficients, jack mapping and speaker amplifier topology",
+                "HDA architecture and codec family identified; the matching OEM codec/topology package is preferred.");
+
+        if (AudioHardwareCatalog.IsKnownCodecOrAmplifier(signature))
+            return Create(
+                $"{vendor} / {codecFamily}",
+                $"{vendor} codec or smart-amplifier miniport/topology",
+                "Medium",
+                $"{codecDependency} driver and firmware",
+                "Matching audio controller, transport bus and OEM endpoint topology",
+                "Laptop-specific ACPI resources, amplifier power sequence and speaker routing",
+                "Codec/amplifier family identified. Exact device and platform package matching is required.");
 
         if (signature.Contains("USB"))
             return Create(
