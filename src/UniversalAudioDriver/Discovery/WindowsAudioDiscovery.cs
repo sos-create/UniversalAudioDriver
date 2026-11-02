@@ -196,7 +196,8 @@ public sealed class WindowsAudioDiscovery
         if (value.Contains("INTELAUDIO") || value.Contains("SMART SOUND") ||
             value.Contains("SST"))
             return "Intel Smart Sound Technology (SST)";
-        if (value.Contains("ACP") || value.Contains("AMD AUDIO"))
+        if (value.Contains("AMD ACP") || value.Contains("AMD AUDIO") ||
+            value.Contains("AUDIO COPROCESSOR"))
             return "AMD Audio CoProcessor (ACP)";
         if (value.Contains("SDCA"))
             return "SoundWire SDCA";
