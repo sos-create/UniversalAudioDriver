@@ -7,6 +7,7 @@ public sealed record CompatibilityAssessment(
     string DetectedFamily,
     string Result,
     string Explanation,
+    IReadOnlyList<string> ParentDeviceIds,
     IReadOnlyList<string> NextChecks);
 
 public sealed class AudioCompatibilityEngine
@@ -19,7 +20,7 @@ public sealed class AudioCompatibilityEngine
             {
                 "Check device status and Windows Plug and Play problem code.",
                 "Check that the required Windows audio services are running.",
-                "Check the matching hardware ID before selecting any driver package."
+                "Match the complete hardware ID, not only the displayed vendor name."
             };
 
             var (result, explanation) = device.ProblemCode switch
@@ -31,7 +32,7 @@ public sealed class AudioCompatibilityEngine
                 28 =>
                     ("Driver missing", "Windows reports that no driver is installed for this device."),
                 10 =>
-                    ("Device failed to start", "Windows reports that the device could not start. A matching bus, codec or firmware component may be missing."),
+                    ("Device failed to start", "The device could not start. A matching bus, codec, DSP or firmware component may be missing."),
                 22 =>
                     ("Device disabled", "The device is disabled in Plug and Play."),
                 31 =>
@@ -42,14 +43,31 @@ public sealed class AudioCompatibilityEngine
                     ("Needs investigation", $"Windows Plug and Play problem code: {device.ProblemCode}.")
             };
 
-            if (device.Family.Contains("candidate", StringComparison.OrdinalIgnoreCase) ||
-                device.Family.Contains("SST", StringComparison.OrdinalIgnoreCase))
-                checks.Add("Resolve the exact codec/controller hardware ID and its parent-device chain.");
+            if (device.ParentDeviceIds.Count == 0)
+            {
+                checks.Add("The Windows PnP parent chain was unavailable; inspect the device in Device Manager.");
+            }
+            else
+            {
+                checks.Add($"PnP ancestry collected ({device.ParentDeviceIds.Count} parent device(s)); use these IDs to match bus and platform drivers.");
+                if (device.ParentDeviceIds.Any(id =>
+                        id.Contains("INTELAUDIO", StringComparison.OrdinalIgnoreCase)))
+                    checks.Add("Intel audio parent detected: verify the matching Intel Smart Sound Technology (SST) controller and DSP components.");
+                if (device.ParentDeviceIds.Any(id =>
+                        id.Contains("HDAUDIO", StringComparison.OrdinalIgnoreCase)))
+                    checks.Add("HDAudio parent detected: verify the codec-specific function driver and its matching topology/firmware package.");
+                if (device.ParentDeviceIds.Any(id =>
+                        id.Contains("ACPI", StringComparison.OrdinalIgnoreCase)))
+                    checks.Add("ACPI parent detected: platform-specific firmware/ACPI audio dependencies may be required.");
+            }
 
-            checks.Add("Do not force-install a driver based only on a vendor name; match the complete hardware ID and platform dependencies.");
+            if (device.Family.Contains("AMD Audio CoProcessor", StringComparison.OrdinalIgnoreCase))
+                checks.Add("Verify the AMD ACP platform driver and the codec/amplifier components paired with this laptop model.");
 
+            checks.Add("Do not force-install a driver based only on a vendor name; a physical speaker path needs a matching controller, codec, amplifier and platform topology.");
             return new CompatibilityAssessment(
-                device.Name, device.Family, result, explanation, checks);
+                device.Name, device.Family, result, explanation,
+                device.ParentDeviceIds, checks);
         }).ToArray();
     }
 }
