@@ -11,12 +11,18 @@
 The setup detects the laptop platform and audio PnP devices, starts the standard
 Windows audio services when possible, rescans devices, and checks for an active
 built-in speaker endpoint. It can stage local, exact-ID matching INF packages
-through Windows PnPUtil. Windows enforces package signature validation and driver
+through Windows PnPUtil. For unresolved devices it also queries Windows Update
+Agent and considers only driver updates whose declared DriverHardwareID exactly
+matches a detected hardware or compatible ID. Updates requiring an unaccepted
+EULA are skipped. Windows enforces package signature validation and driver
 ranking; no forced installation is performed.
 
 This bundle is not a universal kernel audio miniport. If no active built-in speaker
 endpoint is exposed, the report identifies hardware IDs and missing dependencies.
 A matching OEM controller/codec/amplifier driver or a hardware-specific miniport
-and topology implementation is still required. A short test tone confirms that
-Windows accepted audio playback on the selected endpoint; it does not prove every
+and topology implementation is still required. When Windows Update installs a
+matching driver and reports that a restart is required, the installer returns
+a restart-required status; restart Windows and run the installer again to verify
+the speaker endpoint. A short test tone confirms that Windows accepted audio playback
+on the selected endpoint; it does not prove every
 speaker, jack, microphone, power-state or sleep/resume path.
