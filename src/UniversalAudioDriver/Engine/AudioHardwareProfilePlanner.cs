@@ -141,16 +141,6 @@ public static class AudioHardwareProfilePlanner
                 "OEM ACPI resources and amplifier routing",
                 "Serial audio bus identified. Exact controller and codec support is still required.");
 
-        if (signature.Contains("HDAUDIO") || signature.Contains("HD AUDIO"))
-            return Create(
-                "High Definition Audio (HDA)",
-                "HDA bus + codec-specific PortCls miniport/topology",
-                "High",
-                "HDA bus/controller driver",
-                $"{vendor} codec implementation ({codecDependency})",
-                "Codec verbs, pin widgets, coefficients, jack mapping and speaker amplifier topology",
-                "HDA architecture and codec family identified; the matching OEM codec/topology package is preferred.");
-
         if (signature.Contains("HDMI") || signature.Contains("DISPLAYPORT") ||
             signature.Contains("DISPLAY AUDIO"))
             return Create(
@@ -161,6 +151,16 @@ public static class AudioHardwareProfilePlanner
                 "Display link audio endpoint and supported monitor format",
                 "External monitor/TV audio route; not the laptop's built-in speaker codec",
                 "Digital display-audio path identified.");
+
+        if (signature.Contains("HDAUDIO") || signature.Contains("HD AUDIO"))
+            return Create(
+                "High Definition Audio (HDA)",
+                "HDA bus + codec-specific PortCls miniport/topology",
+                "High",
+                "HDA bus/controller driver",
+                $"{vendor} codec implementation ({codecDependency})",
+                "Codec verbs, pin widgets, coefficients, jack mapping and speaker amplifier topology",
+                "HDA architecture and codec family identified; the matching OEM codec/topology package is preferred.");
 
         if (signature.Contains("USB"))
             return Create(
@@ -235,6 +235,12 @@ public static class AudioHardwareProfilePlanner
         AssertArchitecture(
             CreateTestDevice(@"USB\VID_1234&PID_5678", Array.Empty<string>()),
             "USB Audio Class");
+        AssertArchitecture(
+            CreateTestDevice(@"BTHENUM\DEV_1234", Array.Empty<string>()),
+            "Bluetooth audio");
+        AssertArchitecture(
+            CreateNamedTestDevice("NVIDIA HDMI Audio", @"HDAUDIO\FUNC_01&VEN_10DE&DEV_0001"),
+            "HDMI / DisplayPort digital audio");
         var realtekProfile = Plan(CreateNamedTestDevice(
             "Realtek ALC295 codec",
             @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0295"));
