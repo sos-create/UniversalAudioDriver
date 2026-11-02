@@ -6,8 +6,9 @@ namespace UniversalAudioDriver.Engine;
 
 /// <summary>
 /// Finds local INF packages that explicitly contain one of the device's exact
-/// PnP hardware IDs. PnPUtil performs Windows signature and driver-rank checks.
-/// The installer never uses /force and never disables signature enforcement.
+/// PnP hardware IDs. Matching packages are ordered by the audio dependency stack:
+/// platform controller, transport/DSP, codec, then OEM extensions.
+/// PnPUtil performs Windows signature and driver-rank checks.
 /// </summary>
 public sealed class SignedDriverPackageInstaller
 {
@@ -37,8 +38,10 @@ public sealed class SignedDriverPackageInstaller
         var candidates = FindMatchingInfPackages(driverDirectory, targets);
         var results = new List<DriverPackageInstallResult>();
 
+        // Stage dependencies before child components. OEM extension/software
+        // component packages are intentionally staged after their base drivers.
         foreach (var candidate in candidates)
-            results.Add(InstallPackage(candidate.Path, candidate.DeviceIds));
+            results.Add(InstallPackage(candidate));
 
         return results;
     }
@@ -47,7 +50,10 @@ public sealed class SignedDriverPackageInstaller
         string driverDirectory,
         IReadOnlyList<AudioDeviceInfo> targetDevices)
     {
-        var matches = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+        var matches = new Dictionary<string, (
+            HashSet<string> DeviceIds,
+            HashSet<string> HardwareIds,
+            string Contents)>(StringComparer.OrdinalIgnoreCase);
 
         IEnumerable<string> infFiles;
         try
@@ -77,18 +83,27 @@ public sealed class SignedDriverPackageInstaller
                         .Concat(device.ParentCompatibleIds)
                         .Append(device.DeviceId)
                         .Where(id => !string.IsNullOrWhiteSpace(id))
-                        .Distinct(StringComparer.OrdinalIgnoreCase);
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToArray();
 
-                    if (!exactIds.Any(id => InfContainsHardwareId(contents, id)))
+                    var matchedHardwareIds = exactIds
+                        .Where(id => InfContainsHardwareId(contents, id))
+                        .ToArray();
+                    if (matchedHardwareIds.Length == 0)
                         continue;
 
-                    if (!matches.TryGetValue(infPath, out var ids))
+                    if (!matches.TryGetValue(infPath, out var packageMatch))
                     {
-                        ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                        matches.Add(infPath, ids);
+                        packageMatch = (
+                            new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                            new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                            contents);
+                        matches.Add(infPath, packageMatch);
                     }
 
-                    ids.Add(device.DeviceId);
+                    packageMatch.DeviceIds.Add(device.DeviceId);
+                    foreach (var hardwareId in matchedHardwareIds)
+                        packageMatch.HardwareIds.Add(hardwareId);
                 }
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or DecoderFallbackException)
@@ -98,8 +113,18 @@ public sealed class SignedDriverPackageInstaller
         }
 
         return matches
-            .OrderBy(pair => pair.Key, StringComparer.OrdinalIgnoreCase)
-            .Select(pair => new InfCandidate(pair.Key, pair.Value.OrderBy(x => x).ToArray()))
+            .Select(pair =>
+            {
+                var stage = DriverPackageInstallPlanner.Classify(
+                    pair.Value.Contents, pair.Value.HardwareIds);
+                return new InfCandidate(
+                    pair.Key,
+                    pair.Value.DeviceIds.OrderBy(x => x).ToArray(),
+                    stage.Order,
+                    stage.Name);
+            })
+            .OrderBy(candidate => candidate.StageOrder)
+            .ThenBy(candidate => candidate.Path, StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
 
@@ -129,9 +154,7 @@ public sealed class SignedDriverPackageInstaller
     private static bool IsInfTokenBoundary(char value) =>
         char.IsWhiteSpace(value) || value is ',' or '"' or ';' or ']' or '=';
 
-    private static DriverPackageInstallResult InstallPackage(
-        string infPath,
-        IReadOnlyList<string> matchedDeviceIds)
+    private static DriverPackageInstallResult InstallPackage(InfCandidate candidate)
     {
         try
         {
@@ -144,14 +167,16 @@ public sealed class SignedDriverPackageInstaller
                 RedirectStandardError = true
             };
             startInfo.ArgumentList.Add("/add-driver");
-            startInfo.ArgumentList.Add(infPath);
+            startInfo.ArgumentList.Add(candidate.Path);
             startInfo.ArgumentList.Add("/install");
 
             using var process = Process.Start(startInfo);
             if (process is null)
             {
                 return new DriverPackageInstallResult(
-                    infPath, matchedDeviceIds, -1, "Failed to start PnPUtil", string.Empty);
+                    candidate.Path, candidate.DeviceIds, -1,
+                    $"Stage {candidate.StageOrder}: {candidate.StageName}; failed to start PnPUtil",
+                    string.Empty);
             }
 
             var stdoutTask = process.StandardOutput.ReadToEndAsync();
@@ -161,7 +186,9 @@ public sealed class SignedDriverPackageInstaller
             {
                 process.Kill(entireProcessTree: true);
                 return new DriverPackageInstallResult(
-                    infPath, matchedDeviceIds, -1, "Timed out after 120 seconds", string.Empty);
+                    candidate.Path, candidate.DeviceIds, -1,
+                    $"Stage {candidate.StageOrder}: {candidate.StageName}; timed out after 120 seconds",
+                    string.Empty);
             }
 
             Task.WaitAll(stdoutTask, stderrTask);
@@ -170,18 +197,20 @@ public sealed class SignedDriverPackageInstaller
                 output = output[..3000];
 
             return new DriverPackageInstallResult(
-                infPath,
-                matchedDeviceIds,
+                candidate.Path,
+                candidate.DeviceIds,
                 process.ExitCode,
                 process.ExitCode == 0
-                    ? "PnPUtil accepted the package; Windows decides whether its signature and rank permit installation"
-                    : "PnPUtil rejected the package or could not install it",
+                    ? $"Stage {candidate.StageOrder}: {candidate.StageName}; PnPUtil accepted the package and Windows evaluated its signature and rank"
+                    : $"Stage {candidate.StageOrder}: {candidate.StageName}; PnPUtil rejected the package or could not install it",
                 output);
         }
         catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception or IOException)
         {
             return new DriverPackageInstallResult(
-                infPath, matchedDeviceIds, -1, $"Installation failed: {ex.Message}", string.Empty);
+                candidate.Path, candidate.DeviceIds, -1,
+                $"Stage {candidate.StageOrder}: {candidate.StageName}; installation failed: {ex.Message}",
+                string.Empty);
         }
     }
 
@@ -196,5 +225,9 @@ public sealed class SignedDriverPackageInstaller
         }
     }
 
-    private sealed record InfCandidate(string Path, IReadOnlyList<string> DeviceIds);
+    private sealed record InfCandidate(
+        string Path,
+        IReadOnlyList<string> DeviceIds,
+        int StageOrder,
+        string StageName);
 }
