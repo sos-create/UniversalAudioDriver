@@ -36,43 +36,9 @@ public sealed class AudioCompatibilityEngine
                 .Concat(device.HardwareIds)
                 .Concat(device.CompatibleIds)
                 .Concat(device.ParentHardwareIds)
-                .Concat(device.ParentCompatibleIds))
-            .ToUpperInvariant();
+                .Concat(device.ParentCompatibleIds));
 
-        if (new[] { "SMARTAMP", "AMPLIFIER", "MAX983", "MAX98", "CS35", "TAS256", "RT101" }
-            .Any(signature.Contains))
-        {
-            return "Speaker amplifier / Smart Amp";
-        }
-
-        if (new[] { "INTELAUDIO", "SMART SOUND", "SST", "AMD ACP",
-                    "VEN_1022&DEV_15E2", "AUDIO COPROCESSOR", "DSP" }
-            .Any(signature.Contains))
-        {
-            return "Audio controller / DSP";
-        }
-
-        if (new[] { "HDAUDIO", "SOUNDWIRE", "SDCA", "SLIMBUS", "CODEC",
-                    "I2S", "I2C", "RT568", "CS42", "NAU88", "ES83" }
-            .Any(signature.Contains))
-        {
-            return "Audio codec / serial audio component";
-        }
-
-        if (string.Equals(device.PnpClass, "SoftwareComponent", StringComparison.OrdinalIgnoreCase) ||
-            new[] { "DOLBY", "DTS", "NAHIMIC", "WAVES", "MAXX AUDIO" }
-                .Any(signature.Contains))
-        {
-            return "Audio software / effects component";
-        }
-
-        if (string.Equals(device.PnpClass, "AudioEndpoint", StringComparison.OrdinalIgnoreCase))
-            return "Windows audio endpoint";
-
-        if (string.Equals(device.PnpClass, "MEDIA", StringComparison.OrdinalIgnoreCase))
-            return "Audio controller / media device";
-
-        return "Audio platform dependency";
+        return AudioHardwareCatalog.DetectComponentRole(signature, device.PnpClass);
     }
 
     public static void RunSelfTests()
