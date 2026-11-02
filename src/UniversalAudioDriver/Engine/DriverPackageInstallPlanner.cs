@@ -27,7 +27,7 @@ public static class DriverPackageInstallPlanner
         // Platform controllers must be staged before dependent DSP and codec
         // packages. This includes PCI, AMD ACP, Qualcomm, MediaTek and NXP hosts.
         if ((infClass.Equals("System", StringComparison.OrdinalIgnoreCase) &&
-             (ids.Contains(@"PCI\\") || ids.Contains("QCOM") ||
+             (ids.Contains(@"PCI\") || ids.Contains("QCOM") ||
               ids.Contains("QUALCOMM") || ids.Contains("MTK") ||
               ids.Contains("MEDIATEK") || ids.Contains("NXP") ||
               ids.Contains("FREESCALE") || ids.Contains("IMX") ||
@@ -43,8 +43,8 @@ public static class DriverPackageInstallPlanner
             ids.Contains("SMART SOUND TECHNOLOGY") || ids.Contains("SST") ||
             ids.Contains("SOUND OPEN FIRMWARE") || ids.Contains("SOF DSP") ||
             ids.Contains("ADSP") || ids.Contains("QCOM") ||
-            ids.Contains("QUALCOMM") || ids.Contains("MTK AUDIO DSP") ||
-            ids.Contains("MT635") || ids.Contains("I2S") || ids.Contains("SAI"))
+            ids.Contains("QUALCOMM ADSP") || ids.Contains("MTK AUDIO DSP") ||
+            ids.Contains("I2S") || ids.Contains("SAI"))
             return (1, "Audio transport / DSP");
 
         if (ids.Contains("SDCA") || ids.Contains("HDAUDIO") ||
@@ -126,8 +126,8 @@ public static class DriverPackageInstallPlanner
             !extension.Name.Contains("extension", StringComparison.OrdinalIgnoreCase) ||
             qualcommController.Order != 0 ||
             qualcommDsp.Order != 1 ||
-            mediatekCodec.Order != 1 ||
-            nxpAmp.Order != 1 ||
+            mediatekCodec.Order != 2 ||
+            nxpAmp.Order != 2 ||
             sofDsp.Order != 1)
         {
             throw new InvalidOperationException("Driver bundle dependency-order self-test failed.");
