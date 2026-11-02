@@ -29,11 +29,12 @@ internal static class Program
             if (args.Any(a => string.Equals(a, "--self-test", StringComparison.OrdinalIgnoreCase)))
             {
                 AudioHardwareProfilePlanner.RunSelfTests();
+                AudioCompatibilityEngine.RunSelfTests();
                 SignedDriverPackageInstaller.RunSelfTests();
                 WindowsUpdateDriverInstaller.RunSelfTests();
                 BuiltInSpeakerEndpointSelector.RunSelfTests();
                 WindowsDefaultAudioEndpointManager.RunSelfTests();
-                Console.WriteLine("Hardware profile, exact INF/WU matching, speaker selection and default-route self-tests passed.");
+                Console.WriteLine("Hardware profiles, audio component roles, exact INF/WU matching, speaker selection and default-route self-tests passed.");
                 return 0;
             }
 
@@ -151,6 +152,7 @@ internal static class Program
                 {
                     Console.WriteLine($"[{item.Result}] {item.DeviceName}");
                     Console.WriteLine($"  Family: {item.DetectedFamily}");
+                    Console.WriteLine($"  Component role: {item.ComponentRole}");
                     Console.WriteLine($"  Device ID: {item.DeviceId}");
                     Console.WriteLine($"  PnP class: {item.PnpClass ?? "unknown"}; status: {item.DeviceStatus}; problem code: {item.ProblemCode}");
                     Console.WriteLine($"  Driver: {item.DriverProvider ?? "unknown"} {item.DriverVersion ?? ""}; INF: {item.InfName ?? "unknown"}");
