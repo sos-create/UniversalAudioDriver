@@ -34,10 +34,13 @@ jobs:
           $source = Get-Content $script -Raw
           if ($source -notmatch 'IsNullOrWhiteSpace\(\$DriverDirectory\)' -or
               $source -notmatch 'IsNullOrWhiteSpace\(\$ReportPath\)' -or
-              $source -notmatch 'Join-Path -Path \$ScriptDirectory') {
-            throw "Installer path guards are missing."
+              $source -notmatch 'Join-Path -Path \$ScriptDirectory' -or
+              $source -notmatch 'GetFolderPath\("ProgramFiles"\)' -or
+              $source -notmatch 'GetFolderPath\("CommonApplicationData"\)' -or
+              $source -notmatch 'DriverStore') {
+            throw "Installer path guards or persistent Windows installation steps are missing."
           }
-          Write-Host "Installer syntax and empty-path guards validated."
+          Write-Host "Installer syntax, empty-path guards and persistent install paths validated."
 
       - name: Publish self-contained single-file executable
         run: >-
