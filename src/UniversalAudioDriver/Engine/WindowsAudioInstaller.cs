@@ -42,8 +42,13 @@ public sealed class WindowsAudioInstaller
 
         // Windows Update is queried only for devices that still report a problem.
         var devicesAfterLocalPackages = discovery.Scan();
+        var speakersAvailableBeforeWindowsUpdate =
+            BuiltInSpeakerEndpointSelector.Select(
+                new CoreAudioEndpointDiscovery().ScanRenderEndpoints()) is not null;
         var windowsUpdateResult = new WindowsUpdateDriverInstaller()
-            .InstallMatchingUpdates(devicesAfterLocalPackages);
+            .InstallMatchingUpdates(
+                devicesAfterLocalPackages,
+                includeHealthyInternalAudioDevices: !speakersAvailableBeforeWindowsUpdate);
 
         // Ask Windows PnP to enumerate again after package staging.
         var pnpExitCode = new WindowsPnpRecovery().RescanDevices();
