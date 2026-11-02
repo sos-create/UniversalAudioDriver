@@ -75,7 +75,11 @@ package in the Drivers folder and run the installer again. The INF must identify
 one of the detected hardware or compatible IDs. Windows can still reject a
 package or decide that another driver has a better rank. If Windows Update
 installs a matching driver and requires a restart, the installer reports that
-state; restart and run it again to verify the built-in speaker endpoint.
+state; restart and run it again to verify the built-in speaker endpoint. The
+installer also makes a best-effort attempt to set the detected speakers as the
+system default using Windows' undocumented IPolicyConfig COM interface. The
+per-role HRESULT is recorded in the report; per-application routing may still
+override the default.
 
 This installer can configure and verify an already supported Windows speaker
 path. It cannot synthesize a missing Intel SST/AMD ACP/HDA/SoundWire kernel
