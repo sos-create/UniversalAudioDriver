@@ -8,4 +8,5 @@ public sealed record AudioEndpointInfo(
     bool IsDefault,
     bool? IsMuted,
     float? MasterVolumePercent,
-    string FormFactor);
+    string FormFactor,
+    string? ControllerDeviceId);
