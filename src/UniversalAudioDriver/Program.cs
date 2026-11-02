@@ -32,7 +32,8 @@ internal static class Program
                 SignedDriverPackageInstaller.RunSelfTests();
                 WindowsUpdateDriverInstaller.RunSelfTests();
                 BuiltInSpeakerEndpointSelector.RunSelfTests();
-                Console.WriteLine("Hardware profile, exact INF matching and speaker endpoint self-tests passed.");
+                WindowsDefaultAudioEndpointManager.RunSelfTests();
+                Console.WriteLine("Hardware profile, exact INF/WU matching, speaker selection and default-route self-tests passed.");
                 return 0;
             }
 
