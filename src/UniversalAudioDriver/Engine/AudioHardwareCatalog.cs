@@ -58,6 +58,8 @@ public static class AudioHardwareCatalog
         ("RT568", "Realtek RT56xx"),
         ("RT567", "Realtek RT56xx"),
         ("RT551", "Realtek RT55xx"),
+        ("RT564", "Realtek RT56xx"),
+        ("RT565", "Realtek RT56xx"),
         ("RT52", "Realtek RT52xx"),
         ("RT101", "Realtek RT101x smart amplifier"),
         ("CS42", "Cirrus Logic CS42xx codec"),
@@ -66,6 +68,7 @@ public static class AudioHardwareCatalog
         ("CS44", "Cirrus Logic CS44xx codec"),
         ("CX807", "Conexant CX807x codec"),
         ("CX118", "Conexant CX118xx codec"),
+        ("CX207", "Conexant CX20xx codec"),
         ("CX20", "Conexant CX20xx codec"),
         ("WCD", "Qualcomm WCD codec"),
         ("NAU88", "Nuvoton NAU88xx codec"),
@@ -78,6 +81,8 @@ public static class AudioHardwareCatalog
         ("MAX97", "Maxim MAX97xx codec"),
         ("DA721", "Dialog Semiconductor DA721x codec"),
         ("DA739", "Dialog Semiconductor DA739x amplifier"),
+        ("AKM", "Asahi Kasei Microdevices audio codec/DAC"),
+        ("AK44", "Asahi Kasei Microdevices audio DAC"),
         ("NAU", "Nuvoton audio codec")
     };
 
@@ -91,7 +96,8 @@ public static class AudioHardwareCatalog
     private static readonly string[] DspMarkers =
     {
         "INTELAUDIO", "INTEL SMART SOUND", "SMART SOUND",
-        "AMD ACP", "AUDIO COPROCESSOR", "DSP", "SST",
+        "AMD ACP", "AUDIO COPROCESSOR", "VEN_1022&DEV_15E2",
+        "VEN_1022&DEV_15E3", "AMD AUDIO", "DSP", "SST",
         "AUDIO PROCESSOR", "AUDIO DSP"
     };
 
@@ -163,18 +169,23 @@ public static class AudioHardwareCatalog
 
         AssertCodec("Realtek ALC295", "Realtek ALC series");
         AssertCodec("RT5682", "Realtek RT56xx");
+        AssertCodec("RT5640", "Realtek RT56xx");
+        AssertCodec("RT5651", "Realtek RT56xx");
         AssertCodec("Cirrus CS42L42", "Cirrus Logic CS42xx codec");
         AssertCodec("CS35L41 Smart Amp", "Cirrus Logic CS35xx smart amplifier");
         AssertCodec("Conexant CX8070", "Conexant CX807x codec");
+        AssertCodec("Conexant CX20751", "Conexant CX20xx codec");
         AssertCodec("Qualcomm WCD9385", "Qualcomm WCD codec");
         AssertCodec("Nuvoton NAU88L25", "Nuvoton NAU88xx codec");
         AssertCodec("Everest ES8316", "Everest ES83xx codec");
         AssertCodec("TI TAS2563", "Texas Instruments TAS25xx smart amplifier");
         AssertCodec("Maxim MAX98357", "Maxim MAX983xx smart amplifier");
         AssertCodec("Dialog DA7219", "Dialog Semiconductor DA721x codec");
+        AssertCodec("AKM AK4458", "Asahi Kasei Microdevices audio codec/DAC");
 
         if (DetectComponentRole("TAS2563 smart amplifier", "MEDIA") != "Speaker amplifier / Smart Amp" ||
             DetectComponentRole("Intel SST DSP", "System") != "Audio controller / DSP" ||
+            DetectComponentRole(@"PCI\VEN_1022&DEV_15E2", "System") != "Audio controller / DSP" ||
             DetectComponentRole("Realtek ALC295 HDAUDIO", "MEDIA") != "Audio codec / serial audio component")
             throw new InvalidOperationException("Audio hardware component role catalog self-test failed.");
     }
