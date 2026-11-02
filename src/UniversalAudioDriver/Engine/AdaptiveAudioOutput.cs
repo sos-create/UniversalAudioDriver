@@ -10,7 +10,8 @@ public sealed record AdaptiveOutputResult(
     int SampleRate,
     int Channels,
     string ShareMode,
-    string SelectionReason);
+    string SelectionReason,
+    string OutputPreparation);
 
 /// <summary>
 /// Uses Windows Core Audio/WASAPI shared mode. The physical controller/codec remain
@@ -102,6 +103,10 @@ public sealed class AdaptiveAudioOutput
         string selectionReason,
         TimeSpan? duration)
     {
+        // Windows can route a stream successfully while the endpoint is muted or
+        // its endpoint volume is at zero. Prepare only the selected built-in endpoint:
+        // unmute it and apply a conservative 20% floor, leaving higher user levels alone.
+        var outputPreparation = PrepareEndpointVolume(selected);
         var mixFormat = selected.AudioClient.MixFormat;
         var sampleRate = mixFormat.SampleRate;
         var channels = Math.Max(1, mixFormat.Channels);
@@ -134,7 +139,41 @@ public sealed class AdaptiveAudioOutput
             sampleRate,
             channels,
             "WASAPI shared mode",
-            selectionReason);
+            selectionReason,
+            outputPreparation);
+    }
+
+    private static string PrepareEndpointVolume(MMDevice selected)
+    {
+        try
+        {
+            var endpointVolume = selected.AudioEndpointVolume;
+            var actions = new List<string>();
+
+            if (endpointVolume.Mute)
+            {
+                endpointVolume.Mute = false;
+                actions.Add("endpoint mute disabled");
+            }
+
+            var currentVolume = endpointVolume.MasterVolumeLevelScalar;
+            if (currentVolume < 0.20f)
+            {
+                endpointVolume.MasterVolumeLevelScalar = 0.20f;
+                actions.Add($"endpoint volume raised from {currentVolume:P0} to 20%");
+                currentVolume = endpointVolume.MasterVolumeLevelScalar;
+            }
+
+            return actions.Count == 0
+                ? $"Endpoint was already unmuted at {currentVolume:P0}."
+                : string.Join("; ", actions) + $"; current endpoint volume {currentVolume:P0}.";
+        }
+        catch (Exception ex)
+        {
+            // Playback is still attempted; the report makes clear that the
+            // endpoint's mute/volume state could not be prepared or verified.
+            return $"Could not change endpoint mute/volume: {ex.Message}";
+        }
     }
 
     private static void EnsureWindows()
