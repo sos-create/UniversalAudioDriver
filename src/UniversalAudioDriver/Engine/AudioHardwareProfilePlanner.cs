@@ -179,7 +179,32 @@ public static class AudioHardwareProfilePlanner
         AssertArchitecture(
             CreateTestDevice(@"USB\VID_1234&PID_5678", Array.Empty<string>()),
             "USB Audio Class");
+        var realtekProfile = Plan(CreateNamedTestDevice(
+            "Realtek ALC295 codec",
+            @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0295"));
+        if (!realtekProfile.PlatformDependencies.Any(value =>
+                value.Contains("Realtek ALC series", StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("Realtek ALC codec profile self-test failed.");
+
+        var cirrusProfile = Plan(CreateNamedTestDevice(
+            "Cirrus Logic CS35L41 Smart Amplifier",
+            @"ACPI\VEN_CIRR&DEV_35A1"));
+        if (!cirrusProfile.Architecture.Contains("CS35", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Cirrus Logic smart amplifier profile self-test failed.");
+
+        var conexantProfile = Plan(CreateNamedTestDevice(
+            "Conexant CX20751 audio codec",
+            @"HDAUDIO\FUNC_01&VEN_14F1&DEV_510F"));
+        if (!conexantProfile.Architecture.Contains("Conexant", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Conexant codec profile self-test failed.");
+
     }
+
+    private static AudioDeviceInfo CreateNamedTestDevice(string name, string deviceId) =>
+        new(
+            name, deviceId, null, "MEDIA", null, null, null, null,
+            "OK", 0, "Test family", new[] { deviceId }, Array.Empty<string>(),
+            Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>());
 
     private static AudioDeviceInfo CreateTestDevice(
         string deviceId,
