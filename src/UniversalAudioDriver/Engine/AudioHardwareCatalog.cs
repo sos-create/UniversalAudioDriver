@@ -140,13 +140,57 @@ public static class AudioHardwareCatalog
     {
         ArgumentNullException.ThrowIfNull(signature);
         var value = signature.ToUpperInvariant();
-        if (ContainsRealtekAlcModel(value))
+
+        // HDA codec vendor/device IDs remain useful even when Windows exposes
+        // only the generic "High Definition Audio Device" friendly name.
+        if (ContainsRealtekAlcModel(value) ||
+            HasHardwareId(value, "VEN_10EC", "DEV_0256", "DEV_0255", "DEV_0236",
+                "DEV_0257", "DEV_0295", "DEV_0274", "DEV_0289", "DEV_0897",
+                "DEV_0887", "DEV_0892"))
             return "Realtek ALC series";
+
+        if (HasHardwareId(value, "VEN_1013", "DEV_4208"))
+            return "Cirrus Logic CS4208 HDA codec";
+        if (HasHardwareId(value, "VEN_1013", "DEV_4207"))
+            return "Cirrus Logic CS4207 HDA codec";
+        if (HasHardwareId(value, "VEN_1013", "DEV_4210"))
+            return "Cirrus Logic CS4210 HDA codec";
+        if (HasHardwareId(value, "VEN_1013", "DEV_8409"))
+            return "Cirrus Logic CS8409 HDA codec";
 
         foreach (var (marker, name) in Codecs)
             if (value.Contains(marker, StringComparison.OrdinalIgnoreCase))
                 return name;
+
+        if (value.Contains("VEN_10EC") || value.Contains("VEN_RTK") || value.Contains("REALTEK"))
+            return "Realtek HDA codec (model not identified)";
+        if (value.Contains("VEN_1013") || value.Contains("VEN_101A") || value.Contains("VEN_CIRR") || value.Contains("CIRRUS"))
+            return "Cirrus Logic HDA codec (model not identified)";
+        if (value.Contains("VEN_14F1") || value.Contains("CONEXANT"))
+            return "Conexant HDA codec (model not identified)";
+        if (value.Contains("VEN_11D4") || value.Contains("ANALOG DEVICES"))
+            return "Analog Devices HDA codec (model not identified)";
+        if (value.Contains("VEN_111D") || value.Contains("IDT"))
+            return "IDT HDA codec (model not identified)";
+        if (value.Contains("VEN_8384") || value.Contains("SIGMATEL"))
+            return "SigmaTel HDA codec (model not identified)";
+        if (value.Contains("VEN_125D") || value.Contains("ESS TECHNOLOGY"))
+            return "ESS audio codec (model not identified)";
+        if (value.Contains("VEN_1106") || value.Contains("VIA"))
+            return "VIA HDA codec (model not identified)";
+        if (value.Contains("VEN_0D8C") || value.Contains("VEN_13F6") || value.Contains("C-MEDIA"))
+            return "C-Media audio codec (model not identified)";
+
         return "Codec model not identified";
+    }
+
+    private static bool HasHardwareId(string value, string vendorMarker, params string[] deviceMarkers)
+    {
+        if (!value.Contains(vendorMarker, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        return deviceMarkers.Any(marker =>
+            value.Contains(marker, StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool ContainsRealtekAlcModel(string value)
