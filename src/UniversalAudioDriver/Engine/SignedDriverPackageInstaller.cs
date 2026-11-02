@@ -17,7 +17,8 @@ public sealed class SignedDriverPackageInstaller
 
     public IReadOnlyList<DriverPackageInstallResult> InstallMatchingPackages(
         string driverDirectory,
-        IReadOnlyList<AudioDeviceInfo> devices)
+        IReadOnlyList<AudioDeviceInfo> devices,
+        bool includeHealthyDevices = false)
     {
         ArgumentNullException.ThrowIfNull(devices);
 
@@ -28,7 +29,7 @@ public sealed class SignedDriverPackageInstaller
             return Array.Empty<DriverPackageInstallResult>();
 
         var targets = devices
-            .Where(device => RecoverableProblemCodes.Contains(device.ProblemCode))
+            .Where(device => includeHealthyDevices || RecoverableProblemCodes.Contains(device.ProblemCode))
             .Where(device => !string.Equals(device.PnpClass, "AudioEndpoint", StringComparison.OrdinalIgnoreCase))
             .ToArray();
 
