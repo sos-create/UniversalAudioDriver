@@ -427,6 +427,8 @@ public sealed class WindowsAudioDiscovery
 
     private static string DetectArchitecture(string value)
     {
+        value = value.ToUpperInvariant();
+
         if (value.Contains("INTELAUDIO") || value.Contains("SMART SOUND") ||
             value.Contains("SST"))
             return "Intel Smart Sound Technology (SST)";
