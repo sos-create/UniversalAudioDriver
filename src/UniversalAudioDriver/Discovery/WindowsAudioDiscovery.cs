@@ -33,6 +33,7 @@ public sealed class WindowsAudioDiscovery
     {
         ("VEN_10EC", "Realtek"),
         ("VEN_8086", "Intel"),
+        ("VEN_1022&DEV_15E2", "AMD Audio CoProcessor"),
         ("VEN_1022", "AMD"),
         ("VEN_1002", "AMD (ATI)"),
         ("VEN_10DE", "NVIDIA"),
@@ -381,7 +382,8 @@ public sealed class WindowsAudioDiscovery
         if (value.Contains("INTELAUDIO") || value.Contains("SMART SOUND") ||
             value.Contains("SST"))
             return "Intel Smart Sound Technology (SST)";
-        if (value.Contains("AMD ACP") || value.Contains("AMD AUDIO") ||
+        if (value.Contains("VEN_1022&DEV_15E2") ||
+            value.Contains("AMD ACP") || value.Contains("AMD AUDIO") ||
             value.Contains("AUDIO COPROCESSOR"))
             return "AMD Audio CoProcessor (ACP)";
         if (value.Contains("SDCA"))
