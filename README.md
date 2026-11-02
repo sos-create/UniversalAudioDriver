@@ -66,23 +66,28 @@ prompt. The setup then:
    (for example CS35/MAX98/TAS/RT101 families) and audio software components.
    It also includes audio-related parent controllers in the System PnP class
    when they are part of an audio device's ancestry and report a driver problem.
-2. Scans the local `Drivers` folder for INF packages containing exact matching
-   identifiers. Matching packages are submitted to Windows with PnPUtil.
-3. Re-scans devices that still report a PnP problem and queries Windows Update
+2. Detects whether Windows already exposes the built-in speaker endpoint. If it
+   does not, scans the complete discovered audio stack for exact-ID matches in
+   the local `Drivers` folder; otherwise it limits local package staging to
+   devices with recoverable PnP problem codes.
+3. Orders matching OEM INF packages by dependency layer: platform controller,
+   audio transport/DSP, codec/amplifier, then OEM extension/software-component.
+   Windows PnPUtil performs signature, applicability and driver-rank checks.
+4. Re-scans devices that still report a PnP problem and queries Windows Update
    Agent for driver updates whose declared `DriverHardwareID` exactly matches
    one of those hardware, compatible or parent IDs. Updates requiring an
    unaccepted EULA are skipped.
-4. Lets Windows enforce package signatures and driver ranking. The installer
+5. Lets Windows enforce package signatures and driver ranking. The installer
    never uses `/force`, disables driver-signature enforcement, or disables
    Secure Boot.
-5. Requests a PnP rescan and starts the standard Windows audio services when
+6. Requests a PnP rescan and starts the standard Windows audio services when
    possible.
-6. Uses the native Windows endpoint form-factor property, with localized-name
+7. Uses the native Windows endpoint form-factor property, with localized-name
    fallback, to identify built-in speakers. It attempts to set the speakers as
    the Console, Multimedia and Communications default output, then submits a
    short low-volume test stream directly to that endpoint. It only confirms
    that Windows accepted the stream; it cannot measure acoustic output.
-7. Writes `audio-install-report.json` with system information, all device IDs,
+8. Writes `audio-install-report.json` with system information, all device IDs,
    parent-controller IDs, detected backend profile, matching local/WU packages,
    service state, default-output HRESULTs and the speaker playback result.
 
