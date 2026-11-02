@@ -116,6 +116,7 @@ public sealed class WindowsUpdateDriverInstaller
                     title,
                     hardwareId,
                     provider,
+                    matchedDevices,
                     eulaRequired,
                     eulaAccepted));
             }
@@ -127,8 +128,8 @@ public sealed class WindowsUpdateDriverInstaller
                     ? "Windows Update returned no driver package with an exact audio device or parent-controller hardware/compatible ID match."
                     : "Matching updates require an EULA that has not been accepted. No update was installed automatically.";
                 var skipped = matched.Select(update => new WindowsUpdateDriverPackageResult(
-                    update.Title, update.HardwareId, update.Provider, update.EulaRequired,
-                    -1, -1, false,
+                    update.Title, update.HardwareId, update.Provider, update.MatchedDeviceIds,
+                    update.EulaRequired, -1, -1, false,
                     update.EulaAccepted ? "Not installed" : "Skipped: EULA acceptance is required")).ToArray();
 
                 foreach (var update in matched)
@@ -158,8 +159,8 @@ public sealed class WindowsUpdateDriverInstaller
             if (!downloadSucceeded)
             {
                 var failedPackages = accepted.Select(update => new WindowsUpdateDriverPackageResult(
-                    update.Title, update.HardwareId, update.Provider, false,
-                    downloadCode, -1, false,
+                    update.Title, update.HardwareId, update.Provider, update.MatchedDeviceIds,
+                    update.EulaRequired, downloadCode, -1, false,
                     $"Windows Update download result code: {downloadCode}")).ToArray();
 
                 foreach (var update in matched)
@@ -210,7 +211,8 @@ public sealed class WindowsUpdateDriverInstaller
                     update.Title,
                     update.HardwareId,
                     update.Provider,
-                    false,
+                    update.MatchedDeviceIds,
+                    update.EulaRequired,
                     downloadCode,
                     itemCode,
                     itemReboot,
@@ -302,6 +304,7 @@ public sealed class WindowsUpdateDriverInstaller
         string Title,
         string HardwareId,
         string Provider,
+        IReadOnlyList<string> MatchedDeviceIds,
         bool EulaRequired,
         bool EulaAccepted);
 }
