@@ -369,12 +369,18 @@ public sealed class WindowsAudioDiscovery
             .Append(name ?? "")
             .Append(driverProvider ?? "")).ToUpperInvariant();
 
-        var vendor = PciVendors.FirstOrDefault(v => all.Contains(v.Id)).Name;
+        var vendor = AudioHardwareCatalog.DetectVendor(all);
+        if (vendor == "Unknown vendor")
+            vendor = PciVendors.FirstOrDefault(v => all.Contains(v.Id)).Name;
         if (string.IsNullOrWhiteSpace(vendor))
             vendor = DetectNamedVendor(all) ?? driverProvider ?? "Unknown vendor";
 
         var architecture = DetectArchitecture(all);
-        return (vendor, $"{vendor} / {architecture}");
+        var codecFamily = AudioHardwareCatalog.DetectCodecFamily(all);
+        var family = codecFamily == "Codec model not identified"
+            ? $"{vendor} / {architecture}"
+            : $"{vendor} / {architecture} / {codecFamily}";
+        return (vendor, family);
     }
 
     private static string? DetectNamedVendor(string value)
