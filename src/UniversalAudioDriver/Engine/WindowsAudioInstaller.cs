@@ -25,7 +25,12 @@ public sealed class WindowsAudioInstaller
         var packageResults = new SignedDriverPackageInstaller()
             .InstallMatchingPackages(driverDirectory, initialDevices);
 
-        // Re-read the PnP problem state after local OEM packages were staged.
+        // Let Windows apply any newly staged local OEM packages before deciding
+        // which devices still need a driver from Windows Update.
+        int? localDriverPnpRescanExitCode = null;
+        if (packageResults.Any(package => package.ExitCode == 0))
+            localDriverPnpRescanExitCode = new WindowsPnpRecovery().RescanDevices();
+
         // Windows Update is queried only for devices that still report a problem.
         var devicesAfterLocalPackages = discovery.Scan();
         var windowsUpdateResult = new WindowsUpdateDriverInstaller()
@@ -106,6 +111,7 @@ public sealed class WindowsAudioInstaller
             defaultEndpointConfiguration,
             serviceResults,
             packageResults,
+            localDriverPnpRescanExitCode,
             windowsUpdateResult,
             pnpExitCode,
             speakerTest,
