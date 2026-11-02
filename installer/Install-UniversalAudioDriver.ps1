@@ -9,6 +9,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$ReportPathWasProvided = -not [string]::IsNullOrWhiteSpace($ReportPath)
 
 # PSScriptRoot is empty in some legacy PowerShell invocation contexts.
 $ScriptDirectory = $PSScriptRoot
@@ -97,9 +98,53 @@ try {
         exit $elevated.ExitCode
     }
 
+    # Install the utility persistently under Program Files. Driver packages are
+    # kept separately under ProgramData; PnPUtil stages accepted INF packages
+    # into Windows Driver Store (DriverStore/FileRepository), not by raw copy.
+    $InstallRoot = Join-Path ([Environment]::GetFolderPath("ProgramFiles")) "UniversalAudioDriver"
+    $DataRoot = Join-Path ([Environment]::GetFolderPath("CommonApplicationData")) "UniversalAudioDriver"
+    $InstalledApplication = Join-Path $InstallRoot "UniversalAudioDriver.exe"
+    $InstalledDriverDirectory = Join-Path $DataRoot "Drivers"
+
+    New-Item -ItemType Directory -Force -Path $InstallRoot | Out-Null
+    New-Item -ItemType Directory -Force -Path $DataRoot | Out-Null
+    New-Item -ItemType Directory -Force -Path $InstalledDriverDirectory | Out-Null
+
+    foreach ($name in @("UniversalAudioDriver.exe", "Install-UniversalAudioDriver.ps1", "Install-UniversalAudioDriver.cmd", "INSTALLATION-README.md")) {
+        $source = Join-Path $ScriptDirectory $name
+        $destination = Join-Path $InstallRoot $name
+        if ((Test-Path -LiteralPath $source -PathType Leaf) -and
+            [System.IO.Path]::GetFullPath($source) -ne [System.IO.Path]::GetFullPath($destination)) {
+            Copy-Item -LiteralPath $source -Destination $destination -Force
+        }
+    }
+
+    if ((Test-Path -LiteralPath $DriverDirectory -PathType Container) -and
+        [System.IO.Path]::GetFullPath($DriverDirectory).TrimEnd('\') -ne
+        [System.IO.Path]::GetFullPath($InstalledDriverDirectory).TrimEnd('\')) {
+        Get-ChildItem -LiteralPath $DriverDirectory -Force | ForEach-Object {
+            Copy-Item -LiteralPath $_.FullName -Destination $InstalledDriverDirectory -Recurse -Force
+        }
+    }
+
+    $DriverDirectory = $InstalledDriverDirectory
+    if (-not $ReportPathWasProvided) {
+        $ReportPath = Join-Path $DataRoot "audio-install-report.json"
+    }
+    $LogPath = Join-Path $DataRoot "audio-install.log"
+    $Application = $InstalledApplication
+
+    if (-not (Test-Path -LiteralPath $Application -PathType Leaf)) {
+        throw "The application could not be installed to Program Files: $Application"
+    }
+
     $computer = Get-WmiObject Win32_ComputerSystem
     $os = Get-WmiObject Win32_OperatingSystem
     Write-Host "UniversalAudioDriver - automatic audio recovery"
+    Write-Host ("Installed application: {0}" -f $Application)
+    Write-Host ("Persistent driver packages: {0}" -f $DriverDirectory)
+    Write-Host "Matching signed INF packages will be staged by PnPUtil into the Windows Driver Store."
+
     Write-Host ("Computer: {0} {1}" -f $computer.Manufacturer, $computer.Model)
     Write-Host ("Windows: {0} {1} ({2})" -f $os.Caption, $os.Version, $os.OSArchitecture)
     Write-Host ("Application: {0}" -f $Application)
