@@ -11,7 +11,9 @@ public sealed class WindowsAudioDiscovery
         "Name LIKE '%Sound%' OR Name LIKE '%Speaker%' OR " +
         "Name LIKE '%Realtek%' OR Name LIKE '%Conexant%' OR " +
         "Name LIKE '%Cirrus%' OR Name LIKE '%Intel(R) Smart Sound%' OR " +
-        "Name LIKE '%Dolby%' OR Name LIKE '%DTS%' OR Name LIKE '%Nahimic%'";
+        "Name LIKE '%Dolby%' OR Name LIKE '%DTS%' OR Name LIKE '%Nahimic%' OR " +
+        "DeviceID LIKE '%HDAUDIO%' OR DeviceID LIKE '%INTELAUDIO%' OR " +
+        "DeviceID LIKE '%SDCA%'";
 
     private static readonly (string Id, string Name)[] PciVendors =
     {
@@ -69,6 +71,7 @@ public sealed class WindowsAudioDiscovery
     {
         EnsureWindows();
         var devices = new List<AudioDeviceInfo>();
+        var drivers = LoadDriverInventory();
 
         using var searcher = new ManagementObjectSearcher(
             "root\\CIMV2",
@@ -85,8 +88,13 @@ public sealed class WindowsAudioDiscovery
 
                 var hardwareIds = ReadStringArray(item, "HardwareID");
                 var name = ReadString(item, "Name") ?? "(unnamed device)";
-                var driver = FindDriver(id);
-                var classification = Classify(id, hardwareIds, name, driver.Provider);
+                drivers.TryGetValue(id, out var driver);
+
+                // Audio codecs and DSPs are often children of a bus/controller.
+                // Keep the full PnP ancestry so later matching can use real IDs.
+                var parentIds = PnpDeviceTopologyDiscovery.GetParentDeviceIds(id);
+                var classification = Classify(
+                    id, hardwareIds, name, driver.Provider, parentIds);
 
                 devices.Add(new AudioDeviceInfo(
                     name,
@@ -100,7 +108,8 @@ public sealed class WindowsAudioDiscovery
                     ReadString(item, "Status") ?? "Unknown",
                     ReadUInt(item, "ConfigManagerErrorCode"),
                     classification.Family,
-                    hardwareIds));
+                    hardwareIds,
+                    parentIds));
             }
         }
 
@@ -112,25 +121,29 @@ public sealed class WindowsAudioDiscovery
             .ToArray();
     }
 
-    private static (string? Provider, string? Version, string? InfName) FindDriver(string deviceId)
+    private static Dictionary<string, (string? Provider, string? Version, string? InfName)>
+        LoadDriverInventory()
     {
+        var drivers = new Dictionary<string, (string? Provider, string? Version, string? InfName)>(
+            StringComparer.OrdinalIgnoreCase);
+
         try
         {
             using var searcher = new ManagementObjectSearcher(
                 "root\\CIMV2",
                 "SELECT DeviceID, DriverProviderName, DriverVersion, InfName " +
                 "FROM Win32_PnPSignedDriver");
-
             using var results = searcher.Get();
+
             foreach (ManagementObject driver in results)
             {
                 using (driver)
                 {
-                    if (!string.Equals(ReadString(driver, "DeviceID"), deviceId,
-                            StringComparison.OrdinalIgnoreCase))
+                    var id = ReadString(driver, "DeviceID");
+                    if (string.IsNullOrWhiteSpace(id))
                         continue;
 
-                    return (
+                    drivers[id] = (
                         ReadString(driver, "DriverProviderName"),
                         ReadString(driver, "DriverVersion"),
                         ReadString(driver, "InfName"));
@@ -139,19 +152,22 @@ public sealed class WindowsAudioDiscovery
         }
         catch (ManagementException)
         {
-            // Missing optional driver inventory must not stop hardware discovery.
+            // Driver inventory is optional; core PnP discovery must still work.
         }
 
-        return (null, null, null);
+        return drivers;
     }
 
     private static (string Vendor, string Family) Classify(
         string deviceId,
         IReadOnlyList<string> ids,
         string? name,
-        string? driverProvider)
+        string? driverProvider,
+        IReadOnlyList<string> parentDeviceIds)
     {
-        var all = string.Join(" ", ids.Append(deviceId).Append(name ?? "")
+        var all = string.Join(" ", ids.Concat(parentDeviceIds)
+            .Append(deviceId)
+            .Append(name ?? "")
             .Append(driverProvider ?? "")).ToUpperInvariant();
 
         var vendor = PciVendors.FirstOrDefault(v => all.Contains(v.Id)).Name;
@@ -189,23 +205,21 @@ public sealed class WindowsAudioDiscovery
         if (value.Contains("I2S") || value.Contains("I2C"))
             return "I2S / I2C platform audio";
         if (value.Contains("HDAUDIO") || value.Contains("HD AUDIO"))
-            return "Intel High Definition Audio (HDA) bus";
-        if (value.Contains("USB"))
-            return "USB Audio";
+            return "High Definition Audio (HDA) bus";
         if (value.Contains("BTHENUM") || value.Contains("BLUETOOTH") ||
             value.Contains("BTH\\"))
             return "Bluetooth audio";
         if (value.Contains("DISPLAY") || value.Contains("HDMI") ||
-            value.Contains("DISPLAYPORT") || value.Contains("HDAUDIO"))
+            value.Contains("DISPLAYPORT"))
             return "HDMI / DisplayPort digital audio";
+        if (value.Contains("USB"))
+            return "USB Audio Class";
         if (value.Contains("ACPI"))
             return "ACPI / platform-integrated audio";
         if (value.Contains("SWD") || value.Contains("SOFTWARECOMPONENT"))
             return "Windows software audio component / DSP";
         if (value.Contains("PCI"))
             return "PCI / PCI Express audio controller";
-        if (value.Contains("USB"))
-            return "USB Audio Class";
         return "Unclassified audio architecture";
     }
 
