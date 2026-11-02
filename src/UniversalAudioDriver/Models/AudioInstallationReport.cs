@@ -21,7 +21,7 @@ public sealed record SpeakerTestResult(
     string? EndpointId,
     string? ControllerDeviceId,
     string? MatchedPnpDeviceName,
-    bool TonePlayed,
+    bool ToneSubmitted,
     string Result);
 
 public sealed record AudioInstallationReport(
