@@ -12,4 +12,5 @@ public sealed record AudioDeviceInfo(
     string Status,
     uint ProblemCode,
     string Family,
-    IReadOnlyList<string> HardwareIds);
+    IReadOnlyList<string> HardwareIds,
+    IReadOnlyList<string> ParentDeviceIds);
