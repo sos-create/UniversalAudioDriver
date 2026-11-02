@@ -147,8 +147,6 @@ try {
 
     Write-Host ("Computer: {0} {1}" -f $computer.Manufacturer, $computer.Model)
     Write-Host ("Windows: {0} {1} ({2})" -f $os.Caption, $os.Version, $os.OSArchitecture)
-    Write-Host ("Application: {0}" -f $Application)
-    Write-Host ("Driver packages: {0}" -f $DriverDirectory)
     Write-Host ("Detailed log: {0}" -f $LogPath)
     Write-Host ""
 
