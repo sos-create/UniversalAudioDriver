@@ -1,3 +1,5 @@
+using UniversalAudioDriver.Engine;
+
 namespace UniversalAudioDriver.Models;
 
 public sealed record DriverPackageInstallResult(
