@@ -15,6 +15,13 @@ internal static class Program
 
         try
         {
+            if (args.Any(a => string.Equals(a, "--self-test", StringComparison.OrdinalIgnoreCase)))
+            {
+                AudioHardwareProfilePlanner.RunSelfTests();
+                Console.WriteLine("Hardware profile planner self-tests passed.");
+                return 0;
+            }
+
             if (args.Any(a => string.Equals(a, "--rescan-pnp", StringComparison.OrdinalIgnoreCase)))
             {
                 Console.WriteLine("Requesting a Windows Plug and Play device rescan.");
@@ -64,6 +71,9 @@ internal static class Program
                     Console.WriteLine($"[{item.Result}] {item.DeviceName}");
                     Console.WriteLine($"  Family: {item.DetectedFamily}");
                     Console.WriteLine($"  {item.Explanation}");
+                    Console.WriteLine($"  Backend profile: {item.HardwareProfile.Architecture}");
+                    Console.WriteLine($"  Driver model: {item.HardwareProfile.DriverModel}");
+                    Console.WriteLine($"  Profile confidence: {item.HardwareProfile.Confidence}");
                     if (item.ParentDeviceIds.Count > 0)
                     {
                         Console.WriteLine("  PnP parent chain (device IDs):");
