@@ -156,7 +156,7 @@ public sealed class WindowsDefaultAudioEndpointManager
         {
             new AudioEndpointInfo(
                 "Speakers (Realtek Audio)", "readback-id", "Active",
-                "Console, Multimedia", true, false, 50, "Speakers", null)
+                "Console, Multimedia, Communications", true, false, 50, "Speakers", null)
         };
         var verifiedReadback = VerifyReadback(readbackBase, readbackEndpoints);
         var missingMultimedia = VerifyReadback(
