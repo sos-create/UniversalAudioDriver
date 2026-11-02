@@ -5,6 +5,14 @@ namespace UniversalAudioDriver.Discovery;
 
 public sealed class WindowsAudioDiscovery
 {
+    private static readonly HashSet<uint> RecoverableProblemCodes = new() { 10, 28, 31, 43 };
+
+    private static readonly string[] AudioParentMarkers =
+    {
+        "AUDIO", "SOUND", "SST", "ACP", "HDAUDIO", "SDCA",
+        "SOUNDWIRE", "SLIMBUS", "I2S", "CODEC", "DSP", "SMART SOUND"
+    };
+
     private const string AudioFilter =
         "PNPClass = 'MEDIA' OR PNPClass = 'AudioEndpoint' OR " +
         "PNPClass = 'SoftwareComponent' OR Name LIKE '%Audio%' OR " +
@@ -140,6 +148,8 @@ public sealed class WindowsAudioDiscovery
             }
         }
 
+        AddRecoverableAudioParentDevices(devices, pnpIdentifiers, drivers);
+
         return devices
             .GroupBy(d => d.DeviceId, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
@@ -150,7 +160,13 @@ public sealed class WindowsAudioDiscovery
 
     private sealed record PnpIdentifierSet(
         IReadOnlyList<string> HardwareIds,
-        IReadOnlyList<string> CompatibleIds);
+        IReadOnlyList<string> CompatibleIds,
+        string Name,
+        string? Manufacturer,
+        string? PnpClass,
+        string? Service,
+        string Status,
+        uint ProblemCode);
 
     private static Dictionary<string, PnpIdentifierSet> LoadPnpIdentifierInventory()
     {
@@ -161,7 +177,8 @@ public sealed class WindowsAudioDiscovery
         {
             using var searcher = new ManagementObjectSearcher(
                 "root\\CIMV2",
-                "SELECT PNPDeviceID, HardwareID, CompatibleID FROM Win32_PnPEntity");
+                "SELECT PNPDeviceID, HardwareID, CompatibleID, Name, Manufacturer, " +
+                "PNPClass, Service, Status, ConfigManagerErrorCode FROM Win32_PnPEntity");
             using var results = searcher.Get();
 
             foreach (ManagementObject item in results)
@@ -174,7 +191,13 @@ public sealed class WindowsAudioDiscovery
 
                     identifiers[id] = new PnpIdentifierSet(
                         ReadStringArray(item, "HardwareID"),
-                        ReadStringArray(item, "CompatibleID"));
+                        ReadStringArray(item, "CompatibleID"),
+                        ReadString(item, "Name") ?? "(unnamed PnP device)",
+                        ReadString(item, "Manufacturer"),
+                        ReadString(item, "PNPClass"),
+                        ReadString(item, "Service"),
+                        ReadString(item, "Status") ?? "Unknown",
+                        ReadUInt(item, "ConfigManagerErrorCode"));
                 }
             }
         }
@@ -184,6 +207,94 @@ public sealed class WindowsAudioDiscovery
         }
 
         return identifiers;
+    }
+
+    private static void AddRecoverableAudioParentDevices(
+        List<AudioDeviceInfo> devices,
+        IReadOnlyDictionary<string, PnpIdentifierSet> pnpIdentifiers,
+        IReadOnlyDictionary<string, (string? Provider, string? Version, string? InfName)> drivers)
+    {
+        var existingIds = devices
+            .Select(device => device.DeviceId)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var candidateParentIds = devices
+            .SelectMany(device => device.ParentDeviceIds)
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var parentId in candidateParentIds)
+        {
+            if (existingIds.Contains(parentId) ||
+                !pnpIdentifiers.TryGetValue(parentId, out var parent) ||
+                !RecoverableProblemCodes.Contains(parent.ProblemCode) ||
+                !LooksLikeAudioParent(parentId, parent))
+            {
+                continue;
+            }
+
+            var parentAncestors = PnpDeviceTopologyDiscovery.GetParentDeviceIds(parentId);
+            var ancestorHardwareIds = new List<string>();
+            var ancestorCompatibleIds = new List<string>();
+
+            foreach (var ancestorId in parentAncestors)
+            {
+                if (!pnpIdentifiers.TryGetValue(ancestorId, out var ancestor))
+                    continue;
+
+                ancestorHardwareIds.AddRange(ancestor.HardwareIds);
+                ancestorCompatibleIds.AddRange(ancestor.CompatibleIds);
+            }
+
+            var distinctAncestorHardwareIds = ancestorHardwareIds
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            var distinctAncestorCompatibleIds = ancestorCompatibleIds
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+            drivers.TryGetValue(parentId, out var driver);
+            var signatureIds = parent.HardwareIds
+                .Concat(parent.CompatibleIds)
+                .Concat(distinctAncestorHardwareIds)
+                .Concat(distinctAncestorCompatibleIds)
+                .ToArray();
+
+            var classification = Classify(
+                parentId,
+                signatureIds,
+                parent.Name,
+                driver.Provider,
+                parentAncestors);
+
+            devices.Add(new AudioDeviceInfo(
+                parent.Name,
+                parentId,
+                parent.Manufacturer ?? classification.Vendor,
+                parent.PnpClass,
+                parent.Service,
+                driver.Provider,
+                driver.Version,
+                driver.InfName,
+                parent.Status,
+                parent.ProblemCode,
+                classification.Family,
+                parent.HardwareIds,
+                parent.CompatibleIds,
+                parentAncestors,
+                distinctAncestorHardwareIds,
+                distinctAncestorCompatibleIds));
+
+            existingIds.Add(parentId);
+        }
+    }
+
+    private static bool LooksLikeAudioParent(string deviceId, PnpIdentifierSet device)
+    {
+        var signature = string.Join(" ",
+            deviceId,
+            device.Name,
+            device.HardwareIds.Concat(device.CompatibleIds))
+            .ToUpperInvariant();
+
+        return AudioParentMarkers.Any(signature.Contains);
     }
 
     private static Dictionary<string, (string? Provider, string? Version, string? InfName)>
