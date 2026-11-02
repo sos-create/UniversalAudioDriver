@@ -123,7 +123,7 @@ public sealed class WindowsUpdateDriverInstaller
             if (accepted.Length == 0)
             {
                 var status = matched.Count == 0
-                    ? "Windows Update returned no driver package with an exact audio hardware/compatible ID match."
+                    ? "Windows Update returned no driver package with an exact audio device or parent-controller hardware/compatible ID match."
                     : "Matching updates require an EULA that has not been accepted. No update was installed automatically.";
                 var skipped = matched.Select(update => new WindowsUpdateDriverPackageResult(
                     update.Title, update.HardwareId, update.Provider, update.EulaRequired,
@@ -228,7 +228,7 @@ public sealed class WindowsUpdateDriverInstaller
                 installSucceeded,
                 rebootRequired,
                 installSucceeded
-                    ? "Windows Update completed installation of the exact-ID matching driver updates."
+                    ? "Windows Update completed installation of updates matching exact audio device or parent-controller IDs."
                     : $"Windows Update returned installation result code {aggregateInstallCode}.",
                 packageResults);
         }
@@ -272,7 +272,7 @@ public sealed class WindowsUpdateDriverInstaller
             !MatchesExactHardwareId(ids, @"PCI\VEN_8086&DEV_9D70") ||
             MatchesExactHardwareId(ids, @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256&SUBSYS_12345678"))
         {
-            throw new InvalidOperationException("Windows Update exact hardware ID matcher self-test failed.");
+            throw new InvalidOperationException("Windows Update exact device and parent-controller hardware ID matcher self-test failed.");
         }
     }
 
