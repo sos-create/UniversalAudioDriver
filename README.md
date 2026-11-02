@@ -44,4 +44,11 @@ The build script sets `SignMode=Off` for compilation only. It does not produce a
 .\UniversalAudioDriver.exe --test-tone
 ```
 
-The rescan command requests a normal Windows PnP rescan. The test-tone command intentionally plays a brief low-volume tone through the current default playback endpoint.
+The rescan command requests a normal Windows PnP rescan. The test-tone command intentionally plays a brief low-volume tone through the current default playback endpoint. `--adaptive-test` selects an active render endpoint (preferring the Windows default multimedia endpoint), reads its shared-mode mix format, and plays a low-volume test tone using that format.
+
+
+## Adaptive output foundation (current implementation)
+
+The adaptive output path uses Windows Core Audio/WASAPI in shared mode. It selects an active render endpoint, prefers the default multimedia endpoint, reads the endpoint's current mix sample rate/channel count, and configures playback to those values. This can send audio through the laptop's physical speakers **when the installed Windows controller/codec/amplifier driver stack already exposes those speakers as an active render endpoint**.
+
+This is not yet a custom kernel-mode audio driver. It does not replace Intel SST, AMD ACP, Realtek, Cirrus Logic, codec, amplifier, ACPI or DSP drivers. A hardware-specific kernel miniport/topology module cannot be implemented or safely tested without the target controller/codec IDs and platform routing information. The project deliberately does not overwrite existing vendor drivers or install a virtual sample as a physical-speaker driver.
