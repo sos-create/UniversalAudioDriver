@@ -5,6 +5,7 @@ namespace UniversalAudioDriver.Engine;
 public sealed record CompatibilityAssessment(
     string DeviceName,
     string DetectedFamily,
+    string ComponentRole,
     string Result,
     string Explanation,
     string DeviceId,
@@ -26,6 +27,88 @@ public sealed record CompatibilityAssessment(
 
 public sealed class AudioCompatibilityEngine
 {
+    public static string DetectComponentRole(AudioDeviceInfo device)
+    {
+        ArgumentNullException.ThrowIfNull(device);
+
+        var signature = string.Join(" ",
+            new[] { device.Name, device.DeviceId, device.Family }
+                .Concat(device.HardwareIds)
+                .Concat(device.CompatibleIds)
+                .Concat(device.ParentHardwareIds)
+                .Concat(device.ParentCompatibleIds))
+            .ToUpperInvariant();
+
+        if (new[] { "SMARTAMP", "AMPLIFIER", "MAX983", "MAX98", "CS35", "TAS256", "RT101" }
+            .Any(signature.Contains))
+        {
+            return "Speaker amplifier / Smart Amp";
+        }
+
+        if (new[] { "INTELAUDIO", "SMART SOUND", "SST", "ACP", "AUDIO COPROCESSOR", "DSP" }
+            .Any(signature.Contains))
+        {
+            return "Audio controller / DSP";
+        }
+
+        if (new[] { "HDAUDIO", "SOUNDWIRE", "SDCA", "SLIMBUS", "CODEC",
+                    "I2S", "I2C", "RT568", "CS42", "NAU88", "ES83" }
+            .Any(signature.Contains))
+        {
+            return "Audio codec / serial audio component";
+        }
+
+        if (string.Equals(device.PnpClass, "SoftwareComponent", StringComparison.OrdinalIgnoreCase) ||
+            new[] { "DOLBY", "DTS", "NAHIMIC", "WAVES", "MAXX AUDIO" }
+                .Any(signature.Contains))
+        {
+            return "Audio software / effects component";
+        }
+
+        if (string.Equals(device.PnpClass, "AudioEndpoint", StringComparison.OrdinalIgnoreCase))
+            return "Windows audio endpoint";
+
+        if (string.Equals(device.PnpClass, "MEDIA", StringComparison.OrdinalIgnoreCase))
+            return "Audio controller / media device";
+
+        return "Audio platform dependency";
+    }
+
+    public static void RunSelfTests()
+    {
+        var amplifier = CreateTestDevice(
+            "Cirrus Logic CS35L41 SmartAMP", @"ACPI\\VEN_CIRR&DEV_35A1",
+            "SoftwareComponent", @"ACPI\\VEN_CIRR&DEV_35A1");
+        var dsp = CreateTestDevice(
+            "Intel Smart Sound Technology DSP", @"INTELAUDIO\\DSP",
+            "System", @"INTELAUDIO\\DSP");
+        var codec = CreateTestDevice(
+            "Realtek HDAUDIO codec", @"HDAUDIO\\FUNC_01&VEN_10EC",
+            "MEDIA", @"HDAUDIO\\FUNC_01&VEN_10EC");
+        var effects = CreateTestDevice(
+            "Dolby Audio Processing Object", @"SWC\\DOLBY",
+            "SoftwareComponent", @"SWC\\DOLBY");
+
+        if (DetectComponentRole(amplifier) != "Speaker amplifier / Smart Amp" ||
+            DetectComponentRole(dsp) != "Audio controller / DSP" ||
+            DetectComponentRole(codec) != "Audio codec / serial audio component" ||
+            DetectComponentRole(effects) != "Audio software / effects component")
+        {
+            throw new InvalidOperationException("Audio component role detection self-test failed.");
+        }
+    }
+
+    private static AudioDeviceInfo CreateTestDevice(
+        string name,
+        string deviceId,
+        string? pnpClass,
+        params string[] hardwareIds) =>
+        new(
+            name, deviceId, null, pnpClass, null, null, null, null,
+            "OK", 0, "Synthetic audio family",
+            hardwareIds, Array.Empty<string>(), Array.Empty<string>(),
+            Array.Empty<string>(), Array.Empty<string>());
+
     public IReadOnlyList<CompatibilityAssessment> Assess(IEnumerable<AudioDeviceInfo> devices)
     {
         return devices.Select(device =>
@@ -67,13 +150,14 @@ public sealed class AudioCompatibilityEngine
             }
 
             var profile = AudioHardwareProfilePlanner.Plan(device);
+            var componentRole = DetectComponentRole(device);
             checks.AddRange(profile.PlatformDependencies.Select(dependency =>
                 $"Required dependency: {dependency}"));
             checks.Add(profile.ImplementationStatus);
             checks.Add("Do not force-install a driver based only on a vendor name; a physical speaker path needs a matching controller, codec, amplifier and platform topology.");
 
             return new CompatibilityAssessment(
-                device.Name, device.Family, result, explanation,
+                device.Name, device.Family, componentRole, result, explanation,
                 device.DeviceId, device.Manufacturer, device.PnpClass,
                 device.Service, device.DriverProvider, device.DriverVersion,
                 device.InfName, device.Status, device.ProblemCode,
