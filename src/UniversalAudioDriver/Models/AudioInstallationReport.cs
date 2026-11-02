@@ -29,6 +29,7 @@ public sealed record AudioInstallationReport(
     IReadOnlyList<AudioEndpointInfo> PlaybackEndpoints,
     IReadOnlyList<AudioServiceRecoveryResult> Services,
     IReadOnlyList<DriverPackageInstallResult> DriverPackages,
+    WindowsUpdateDriverInstallResult WindowsUpdateDrivers,
     int PnpRescanExitCode,
     SpeakerTestResult SpeakerTest,
     string Status,
