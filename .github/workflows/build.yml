@@ -18,5 +18,19 @@ jobs:
         run: dotnet restore src/UniversalAudioDriver/UniversalAudioDriver.csproj
       - name: Build
         run: dotnet build src/UniversalAudioDriver/UniversalAudioDriver.csproj --configuration Release --no-restore
+      - name: Validate PowerShell installer syntax
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            "installer/Install-UniversalAudioDriver.ps1",
+            [ref]$tokens,
+            [ref]$errors
+          ) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
       - name: Hardware profile, INF matcher and speaker endpoint self-tests
         run: dotnet run --project src/UniversalAudioDriver/UniversalAudioDriver.csproj --configuration Release --no-build -- --self-test
