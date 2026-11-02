@@ -29,6 +29,7 @@ internal static class Program
             if (args.Any(a => string.Equals(a, "--self-test", StringComparison.OrdinalIgnoreCase)))
             {
                 AudioHardwareCatalog.RunSelfTests();
+                WindowsAudioDiscovery.RunSelfTests();
                 AudioHardwareProfilePlanner.RunSelfTests();
                 AudioCompatibilityEngine.RunSelfTests();
                 SignedDriverPackageInstaller.RunSelfTests();
@@ -36,7 +37,7 @@ internal static class Program
                 WindowsUpdateDriverInstaller.RunSelfTests();
                 BuiltInSpeakerEndpointSelector.RunSelfTests();
                 WindowsDefaultAudioEndpointManager.RunSelfTests();
-                Console.WriteLine("Codec/vendor catalog, hardware profiles, dependency-ordered driver bundle planning, exact INF/WU matching, speaker selection and default-route self-tests passed.");
+                Console.WriteLine("Codec/vendor catalog, PnP architecture detection, hardware profiles, dependency-ordered driver bundle planning, exact INF/WU matching, speaker selection and default-route self-tests passed.");
                 return 0;
             }
 
