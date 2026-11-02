@@ -18,5 +18,5 @@ jobs:
         run: dotnet restore src/UniversalAudioDriver/UniversalAudioDriver.csproj
       - name: Build
         run: dotnet build src/UniversalAudioDriver/UniversalAudioDriver.csproj --configuration Release --no-restore
-      - name: Hardware profile planner self-tests
+      - name: Hardware profile, INF matcher and speaker endpoint self-tests
         run: dotnet run --project src/UniversalAudioDriver/UniversalAudioDriver.csproj --configuration Release --no-build -- --self-test
