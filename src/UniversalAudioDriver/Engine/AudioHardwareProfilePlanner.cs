@@ -195,7 +195,8 @@ public static class AudioHardwareProfilePlanner
         var conexantProfile = Plan(CreateNamedTestDevice(
             "Conexant CX20751 audio codec",
             @"HDAUDIO\FUNC_01&VEN_14F1&DEV_510F"));
-        if (!conexantProfile.Architecture.Contains("Conexant", StringComparison.OrdinalIgnoreCase))
+        if (!conexantProfile.PlatformDependencies.Any(value =>
+                value.Contains("Conexant", StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException("Conexant codec profile self-test failed.");
 
     }
