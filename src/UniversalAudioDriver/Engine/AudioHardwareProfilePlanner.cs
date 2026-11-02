@@ -76,6 +76,51 @@ public static class AudioHardwareProfilePlanner
                 "Hardware profile identified. ACP hardware revision and codec-specific implementation are still required.");
         }
 
+        if (signature.Contains("QUALCOMM") || signature.Contains("QCOM") ||
+            signature.Contains("WCD") || signature.Contains("QUALCOMM ADSP"))
+            return Create(
+                "Qualcomm Snapdragon audio / WCD",
+                "Qualcomm audio DSP + WCD codec + SLIMbus/I2S topology",
+                "Medium",
+                "Qualcomm audio DSP firmware and platform driver",
+                $"{codecDependency} codec driver and audio transport",
+                "OEM ACPI routing, smart amplifier and speaker calibration data",
+                "Qualcomm audio platform identified; exact WCD codec and OEM firmware package matching is required.");
+
+        if (signature.Contains("MEDIATEK") || signature.Contains("MTK") ||
+            signature.Contains("MT635"))
+            return Create(
+                "MediaTek audio DSP / codec",
+                "MediaTek audio DSP + codec + I2S/PCM topology",
+                "Medium",
+                "MediaTek platform audio driver and DSP firmware",
+                $"{codecDependency} codec and audio transport driver",
+                "OEM ACPI resources, amplifier sequencing and endpoint topology",
+                "MediaTek audio platform identified; matching platform firmware and OEM topology are required.");
+
+        if (signature.Contains("SOUND OPEN FIRMWARE") || signature.Contains("SOF DSP"))
+            return Create(
+                "Sound Open Firmware (SOF) DSP",
+                "SOF DSP firmware + platform-specific audio transport and codec topology",
+                "Medium",
+                "Matching SOF firmware and host IPC implementation",
+                $"{codecDependency} codec driver and controller transport",
+                "OEM ACPI resources, firmware topology and amplifier configuration",
+                "SOF DSP architecture identified; firmware and topology must match the exact platform.");
+
+        if ((signature.Contains("NXP") || signature.Contains("FREESCALE") ||
+             signature.Contains("IMX")) &&
+            (signature.Contains("I2S") || signature.Contains("SAI") ||
+             signature.Contains("TFA98") || signature.Contains("TFA99")))
+            return Create(
+                "NXP / Freescale i.MX audio",
+                "i.MX SAI/I2S controller + codec/smart-amplifier topology",
+                "Medium",
+                "NXP i.MX SAI platform driver and firmware",
+                $"{codecDependency} codec/amplifier driver",
+                "Board-specific ACPI/device resources, clocks and speaker routing",
+                "NXP audio path identified; exact board topology and codec package matching is required.");
+
         if (signature.Contains("SDCA"))
             return Create(
                 "SoundWire SDCA",
@@ -198,6 +243,30 @@ public static class AudioHardwareProfilePlanner
         if (!conexantProfile.PlatformDependencies.Any(value =>
                 value.Contains("Conexant", StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException("Conexant codec profile self-test failed.");
+        var qualcommProfile = Plan(CreateNamedTestDevice(
+            "Qualcomm WCD9385 audio codec",
+            @"ACPI\VEN_QCOM&DEV_WCD9385"));
+        if (!qualcommProfile.Architecture.Contains("Qualcomm", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Qualcomm WCD profile self-test failed.");
+
+        var mediatekProfile = Plan(CreateNamedTestDevice(
+            "MediaTek MT6359 audio codec",
+            @"ACPI\VEN_MTK&DEV_6359"));
+        if (!mediatekProfile.Architecture.Contains("MediaTek", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("MediaTek audio profile self-test failed.");
+
+        var nxpProfile = Plan(CreateNamedTestDevice(
+            "NXP TFA9874 Smart Amplifier",
+            @"ACPI\VEN_NXP&DEV_TFA9874"));
+        if (!nxpProfile.Architecture.Contains("NXP", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("NXP smart amplifier profile self-test failed.");
+
+        var sofProfile = Plan(CreateNamedTestDevice(
+            "Sound Open Firmware DSP",
+            @"PCI\VEN_8086&DEV_SOF001"));
+        if (!sofProfile.Architecture.Contains("SOF", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("SOF DSP profile self-test failed.");
+
 
     }
 
