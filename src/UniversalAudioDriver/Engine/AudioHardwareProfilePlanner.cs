@@ -14,6 +14,7 @@ public static class AudioHardwareProfilePlanner
 
         var signature = string.Join(" ", new[] { device.DeviceId }
             .Concat(device.HardwareIds)
+            .Concat(device.CompatibleIds)
             .Concat(device.ParentDeviceIds)
             .Append(device.Name)
             .Append(device.Family))
