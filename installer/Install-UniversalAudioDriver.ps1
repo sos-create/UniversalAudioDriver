@@ -43,19 +43,19 @@ if (Test-Path -LiteralPath $ReportPath) {
 }
 
 if ($ExitCode -eq 0) {
-    Write-Host "The active built-in speaker endpoint passed the software playback test."
+    Write-Host "WASAPI accepted a test stream on the built-in speaker endpoint. Physical sound output is not acoustically measured."
 }
 elseif ($ExitCode -eq 2) {
     Write-Warning "No active built-in speaker endpoint was exposed by the Windows audio stack."
 }
 elseif ($ExitCode -eq 3) {
-    Write-Warning "The speaker endpoint exists, but the playback test failed."
+    Write-Warning "The speaker endpoint exists, but WASAPI could not submit the test stream."
 }
 elseif ($ExitCode -eq 4) {
     Write-Warning "Windows installed a matching audio driver and requires a restart. Restart Windows, then run this installer again to verify the built-in speakers."
 }
 elseif ($ExitCode -eq 5) {
-    Write-Warning "The built-in speakers passed the test tone, but Windows did not confirm changing the system default output. Check audio-install-report.json."
+    Write-Warning "WASAPI accepted a test stream, but Windows did not confirm changing the system default output. Check audio-install-report.json."
 }
 else {
     Write-Warning "The audio setup process returned exit code $ExitCode."
