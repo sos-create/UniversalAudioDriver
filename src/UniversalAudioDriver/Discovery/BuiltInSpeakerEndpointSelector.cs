@@ -39,6 +39,19 @@ public static class BuiltInSpeakerEndpointSelector
         if (ExternalMarkers.Any(name.Contains))
             return false;
 
+        if (endpoint.FormFactor.Equals("Speakers", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (endpoint.FormFactor.Equals("Headphones", StringComparison.OrdinalIgnoreCase) ||
+            endpoint.FormFactor.Equals("Headset", StringComparison.OrdinalIgnoreCase) ||
+            endpoint.FormFactor.Equals("HDMI", StringComparison.OrdinalIgnoreCase) ||
+            endpoint.FormFactor.Equals("SPDIF", StringComparison.OrdinalIgnoreCase) ||
+            endpoint.FormFactor.Equals("LineLevel", StringComparison.OrdinalIgnoreCase) ||
+            endpoint.FormFactor.Equals("Microphone", StringComparison.OrdinalIgnoreCase) ||
+            endpoint.FormFactor.Equals("Handset", StringComparison.OrdinalIgnoreCase) ||
+            endpoint.FormFactor.Equals("RemoteNetworkDevice", StringComparison.OrdinalIgnoreCase))
+            return false;
+
         return name.Contains("SPEAKER") ||
                name.Contains("INTERNAL AUDIO") ||
                name.Contains("ДИНАМИК") ||
@@ -52,22 +65,22 @@ public static class BuiltInSpeakerEndpointSelector
     {
         var builtIn = new AudioEndpointInfo(
             "Speakers (Realtek(R) Audio)", "endpoint-speakers", "Active",
-            "Multimedia", true, false, 50);
+            "Multimedia", true, false, 50, "Speakers");
         var russianBuiltIn = new AudioEndpointInfo(
             "Динамики (Realtek(R) Audio)", "endpoint-russian-speakers", "Active",
-            "Not default", false, false, 50);
+            "Not default", false, false, 50, "Speakers");
         var germanBuiltIn = new AudioEndpointInfo(
             "Lautsprecher (Realtek(R) Audio)", "endpoint-german-speakers", "Active",
             "Not default", false, false, 50);
         var hdmi = new AudioEndpointInfo(
             "Speakers (NVIDIA High Definition Audio HDMI)", "endpoint-hdmi",
-            "Active", "Not default", false, false, 50);
+            "Active", "Not default", false, false, 50, "HDMI");
         var headphones = new AudioEndpointInfo(
             "Headphones (Realtek Audio)", "endpoint-headphones",
             "Active", "Not default", false, false, 50);
         var disabled = new AudioEndpointInfo(
             "Speakers (Cirrus Audio)", "endpoint-disabled",
-            "Disabled", "Not default", false, false, 50);
+            "Disabled", "Not default", false, false, 50, "Speakers");
 
         if (!IsLikelyBuiltInSpeaker(builtIn) ||
             !IsLikelyBuiltInSpeaker(russianBuiltIn) ||
