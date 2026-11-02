@@ -28,6 +28,8 @@ public sealed class WindowsUpdateDriverInstaller
                 Device = device,
                 Ids = device.HardwareIds
                     .Concat(device.CompatibleIds)
+                    .Concat(device.ParentHardwareIds)
+                    .Concat(device.ParentCompatibleIds)
                     .Concat(device.ParentDeviceIds)
                     .Append(device.DeviceId)
                     .Where(id => !string.IsNullOrWhiteSpace(id))
