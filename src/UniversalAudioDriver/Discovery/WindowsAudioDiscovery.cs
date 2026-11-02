@@ -11,7 +11,11 @@ public sealed class WindowsAudioDiscovery
     {
         "AUDIO", "SOUND", "SST", "AMD ACP", "AUDIO COPROCESSOR",
         "VEN_1022&DEV_15E2", "HDAUDIO", "SDCA",
-        "SOUNDWIRE", "SLIMBUS", "I2S", "CODEC", "DSP", "SMART SOUND"
+        "SOUNDWIRE", "SLIMBUS", "I2S", "CODEC", "DSP", "SMART SOUND",
+        "ALC", "RT56", "RT55", "RT101", "CS35", "CS42", "CS47",
+        "CX807", "CX118", "WCD", "NAU88", "ES83", "ES85",
+        "TAS25", "TAS27", "MAX983", "MAX98", "DA721",
+        "SYNAPTICS", "NUVOTON", "WOLFSON", "SMARTAMP"
     };
 
     private const string AudioFilter =
@@ -24,7 +28,12 @@ public sealed class WindowsAudioDiscovery
         "Name LIKE '%Dolby%' OR Name LIKE '%DTS%' OR Name LIKE '%Nahimic%' OR " +
         "Name LIKE '%MAX98%' OR Name LIKE '%CS35%' OR Name LIKE '%TAS25%' OR " +
         "Name LIKE '%NAU88%' OR Name LIKE '%RT101%' OR Name LIKE '%RT568%' OR " +
-        "Name LIKE '%ES83%' OR Name LIKE '%CS42%' OR " +
+        "Name LIKE '%ES83%' OR Name LIKE '%ES85%' OR Name LIKE '%CS42%' OR " +
+        "Name LIKE '%CS47%' OR Name LIKE '%ALC%' OR Name LIKE '%RT56%' OR " +
+        "Name LIKE '%RT55%' OR Name LIKE '%RT101%' OR Name LIKE '%CX807%' OR " +
+        "Name LIKE '%CX118%' OR Name LIKE '%WCD%' OR Name LIKE '%TAS27%' OR " +
+        "Name LIKE '%MAX983%' OR Name LIKE '%DA721%' OR Name LIKE '%Synaptics%' OR " +
+        "Name LIKE '%Nuvoton%' OR Name LIKE '%Wolfson%' OR Name LIKE '%Everest%' OR " +
         "DeviceID LIKE '%HDAUDIO%' OR DeviceID LIKE '%INTELAUDIO%' OR " +
         "DeviceID LIKE '%SDCA%' OR DeviceID LIKE '%SOUNDWIRE%' OR " +
         "DeviceID LIKE '%SLIMBUS%' OR DeviceID LIKE '%I2S%' OR " +
@@ -53,6 +62,10 @@ public sealed class WindowsAudioDiscovery
         ("VEN_14C3", "MediaTek"),
         ("VEN_17CB", "Qualcomm"),
         ("VEN_1FC9", "NXP"),
+        ("VEN_193C", "Maxim Integrated"),
+        ("VEN_17F3", "Nuvoton"),
+        ("VEN_1B4F", "Dialog Semiconductor"),
+        ("VEN_1F3A", "Everest Semiconductor"),
         ("VEN_1043", "ASUS"),
         ("VEN_1025", "Acer"),
         ("VEN_17AA", "Lenovo"),
@@ -373,7 +386,10 @@ public sealed class WindowsAudioDiscovery
             "SIGMATEL", "QUALCOMM", "MEDIATEK", "NVIDIA", "AMD", "INTEL",
             "DOLBY", "DTS", "NAHIMIC", "MAXX AUDIO", "WAVES",
             "MAXIM", "MAX983", "NUVOTON", "NAU88", "TEXAS INSTRUMENTS",
-            "SMARTAMP", "WOLFSON", "GOODIX", "DIALOG", "TAS256", "CS35"
+            "SMARTAMP", "WOLFSON", "GOODIX", "DIALOG", "TAS256", "TAS27",
+            "CS35", "CS42", "CS47", "RT568", "RT567", "RT101",
+            "ALC", "CX807", "CX118", "WCD", "ES83", "ES85", "DA721",
+            "SYNAPTICS", "EVEREST", "MAXX AUDIO", "DIRAC"
         };
 
         return vendors.FirstOrDefault(value.Contains);
