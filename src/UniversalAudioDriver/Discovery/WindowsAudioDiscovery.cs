@@ -434,6 +434,19 @@ public sealed class WindowsAudioDiscovery
             value.Contains("AMD ACP") || value.Contains("AMD AUDIO") ||
             value.Contains("AUDIO COPROCESSOR"))
             return "AMD Audio CoProcessor (ACP)";
+        if (value.Contains("QUALCOMM") || value.Contains("QCOM") ||
+            value.Contains("WCD") || value.Contains("ADSP"))
+            return "Qualcomm audio DSP / WCD";
+        if (value.Contains("MEDIATEK") || value.Contains("MTK") ||
+            value.Contains("MT635"))
+            return "MediaTek audio DSP / codec";
+        if ((value.Contains("NXP") || value.Contains("FREESCALE") ||
+             value.Contains("IMX")) &&
+            (value.Contains("I2S") || value.Contains("SAI") ||
+             value.Contains("TFA98") || value.Contains("TFA99")))
+            return "NXP / Freescale i.MX SAI / I2S";
+        if (value.Contains("SOUND OPEN FIRMWARE") || value.Contains("SOF DSP"))
+            return "Sound Open Firmware (SOF) DSP";
         if (value.Contains("SDCA"))
             return "SoundWire SDCA";
         if (value.Contains("SOUNDWIRE") || value.Contains("SLIMBUS"))
