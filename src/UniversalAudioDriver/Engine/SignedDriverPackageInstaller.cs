@@ -75,7 +75,6 @@ public sealed class SignedDriverPackageInstaller
                         .Concat(device.CompatibleIds)
                         .Concat(device.ParentHardwareIds)
                         .Concat(device.ParentCompatibleIds)
-                        .Concat(device.ParentDeviceIds)
                         .Append(device.DeviceId)
                         .Where(id => !string.IsNullOrWhiteSpace(id))
                         .Distinct(StringComparer.OrdinalIgnoreCase);
