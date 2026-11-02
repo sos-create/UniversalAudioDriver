@@ -56,7 +56,8 @@ public static class AudioHardwareProfilePlanner
                 "Hardware profile identified. A matching physical-speaker miniport/topology is not included yet.");
         }
 
-        if (signature.Contains("AMD AUDIO COPROCESSOR") ||
+        if (signature.Contains("VEN_1022&DEV_15E2") ||
+            signature.Contains("AMD AUDIO COPROCESSOR") ||
             signature.Contains("AMD ACP"))
         {
             return Create(
@@ -146,6 +147,9 @@ public static class AudioHardwareProfilePlanner
             "Intel Smart Sound Technology (SST)");
         AssertArchitecture(
             CreateTestDevice(@"PCI\VEN_1022&DEV_15E3", new[] { "AMD Audio CoProcessor (ACP)" }),
+            "AMD Audio CoProcessor (ACP)");
+        AssertArchitecture(
+            CreateTestDevice(@"PCI\VEN_1022&DEV_15E2", Array.Empty<string>()),
             "AMD Audio CoProcessor (ACP)");
         AssertArchitecture(
             CreateTestDevice(@"HDAUDIO\FUNC_01&VEN_10EC", Array.Empty<string>()),
