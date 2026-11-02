@@ -72,6 +72,7 @@ public sealed class WindowsAudioDiscovery
         EnsureWindows();
         var devices = new List<AudioDeviceInfo>();
         var drivers = LoadDriverInventory();
+        var pnpIdentifiers = LoadPnpIdentifierInventory();
 
         using var searcher = new ManagementObjectSearcher(
             "root\\CIMV2",
@@ -94,8 +95,30 @@ public sealed class WindowsAudioDiscovery
                 // Audio codecs and DSPs are often children of a bus/controller.
                 // Keep the full PnP ancestry so later matching can use real IDs.
                 var parentIds = PnpDeviceTopologyDiscovery.GetParentDeviceIds(id);
+                var parentHardwareIds = new List<string>();
+                var parentCompatibleIds = new List<string>();
+                foreach (var parentId in parentIds)
+                {
+                    if (!pnpIdentifiers.TryGetValue(parentId, out var parentIdentifiers))
+                        continue;
+
+                    parentHardwareIds.AddRange(parentIdentifiers.HardwareIds);
+                    parentCompatibleIds.AddRange(parentIdentifiers.CompatibleIds);
+                }
+
+                var distinctParentHardwareIds = parentHardwareIds
+                    .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+                var distinctParentCompatibleIds = parentCompatibleIds
+                    .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+                var allHardwareTokens = hardwareIds
+                    .Concat(compatibleIds)
+                    .Concat(distinctParentHardwareIds)
+                    .Concat(distinctParentCompatibleIds)
+                    .ToArray();
+
                 var classification = Classify(
-                    id, hardwareIds.Concat(compatibleIds).ToArray(), name, driver.Provider, parentIds);
+                    id, allHardwareTokens, name, driver.Provider, parentIds);
 
                 devices.Add(new AudioDeviceInfo(
                     name,
@@ -111,7 +134,9 @@ public sealed class WindowsAudioDiscovery
                     classification.Family,
                     hardwareIds,
                     compatibleIds,
-                    parentIds));
+                    parentIds,
+                    distinctParentHardwareIds,
+                    distinctParentCompatibleIds));
             }
         }
 
@@ -121,6 +146,44 @@ public sealed class WindowsAudioDiscovery
             .OrderBy(d => d.PnpClass)
             .ThenBy(d => d.Name)
             .ToArray();
+    }
+
+    private sealed record PnpIdentifierSet(
+        IReadOnlyList<string> HardwareIds,
+        IReadOnlyList<string> CompatibleIds);
+
+    private static Dictionary<string, PnpIdentifierSet> LoadPnpIdentifierInventory()
+    {
+        var identifiers = new Dictionary<string, PnpIdentifierSet>(
+            StringComparer.OrdinalIgnoreCase);
+
+        try
+        {
+            using var searcher = new ManagementObjectSearcher(
+                "root\\CIMV2",
+                "SELECT PNPDeviceID, HardwareID, CompatibleID FROM Win32_PnPEntity");
+            using var results = searcher.Get();
+
+            foreach (ManagementObject item in results)
+            {
+                using (item)
+                {
+                    var id = ReadString(item, "PNPDeviceID");
+                    if (string.IsNullOrWhiteSpace(id))
+                        continue;
+
+                    identifiers[id] = new PnpIdentifierSet(
+                        ReadStringArray(item, "HardwareID"),
+                        ReadStringArray(item, "CompatibleID"));
+                }
+            }
+        }
+        catch (ManagementException)
+        {
+            // The parent instance IDs remain available when optional metadata cannot be read.
+        }
+
+        return identifiers;
     }
 
     private static Dictionary<string, (string? Provider, string? Version, string? InfName)>
