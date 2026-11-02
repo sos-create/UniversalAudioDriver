@@ -31,10 +31,11 @@ internal static class Program
                 AudioHardwareProfilePlanner.RunSelfTests();
                 AudioCompatibilityEngine.RunSelfTests();
                 SignedDriverPackageInstaller.RunSelfTests();
+                DriverPackageInstallPlanner.RunSelfTests();
                 WindowsUpdateDriverInstaller.RunSelfTests();
                 BuiltInSpeakerEndpointSelector.RunSelfTests();
                 WindowsDefaultAudioEndpointManager.RunSelfTests();
-                Console.WriteLine("Hardware profiles, audio component roles, exact INF/WU matching, speaker selection and default-route self-tests passed.");
+                Console.WriteLine("Hardware profiles, dependency-ordered driver bundle planning, exact INF/WU matching, speaker selection and default-route self-tests passed.");
                 return 0;
             }
 
