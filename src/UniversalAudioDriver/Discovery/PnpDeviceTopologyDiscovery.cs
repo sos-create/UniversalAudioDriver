@@ -38,7 +38,7 @@ internal static class PnpDeviceTopologyDiscovery
 
                 // CM_Get_Device_ID_Size reports the number of characters excluding NUL.
                 var buffer = new StringBuilder(checked((int)length + 1));
-                if (CM_Get_Device_IDW(buffer, (uint)buffer.Capacity, parentNode, 0) != CrSuccess)
+                if (CM_Get_Device_IDW(parentNode, buffer, (uint)buffer.Capacity, 0) != CrSuccess)
                     break;
 
                 var parentId = buffer.ToString();
@@ -85,8 +85,8 @@ internal static class PnpDeviceTopologyDiscovery
 
     [DllImport("cfgmgr32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
     private static extern int CM_Get_Device_IDW(
+        uint deviceInstance,
         StringBuilder buffer,
         uint bufferLength,
-        uint deviceInstance,
         uint flags);
 }
