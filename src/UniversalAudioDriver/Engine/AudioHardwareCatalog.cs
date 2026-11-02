@@ -271,6 +271,10 @@ public static class AudioHardwareCatalog
         AssertVendor(@"HDAUDIO\FUNC_01&VEN_125D", "ESS Technology");
 
         AssertCodec("Realtek ALC295", "Realtek ALC series");
+        AssertCodec(@"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256", "Realtek ALC series");
+        AssertCodec(@"HDAUDIO\FUNC_01&VEN_1013&DEV_4208", "Cirrus Logic CS4208 HDA codec");
+        AssertCodec(@"HDAUDIO\FUNC_01&VEN_1013&DEV_8409", "Cirrus Logic CS8409 HDA codec");
+        AssertCodec(@"HDAUDIO\FUNC_01&VEN_14F1", "Conexant HDA codec (model not identified)");
         AssertCodec(@"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256 ALC 256", "Realtek ALC series");
         AssertCodec("RT5682", "Realtek RT56xx");
         AssertCodec("RT5640", "Realtek RT56xx");
