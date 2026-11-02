@@ -35,11 +35,12 @@ public sealed class WindowsDefaultAudioEndpointManager
             var policy = (IPolicyConfig)policyObject;
 
             var console = SetRole(policy, endpoint.Id, AudioEndpointRole.Console);
-            var multimedia = SetRole(policy, endpoint.Id, AudioEndpointRole.Multimedia);
-            var communications = SetRole(policy, endpoint.Id, AudioEndpointRole.Communications);
-
             results.Add(console);
+
+            var multimedia = SetRole(policy, endpoint.Id, AudioEndpointRole.Multimedia);
             results.Add(multimedia);
+
+            var communications = SetRole(policy, endpoint.Id, AudioEndpointRole.Communications);
             results.Add(communications);
 
             var status = console.Succeeded && multimedia.Succeeded
