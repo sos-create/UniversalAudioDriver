@@ -30,7 +30,6 @@ public sealed class WindowsUpdateDriverInstaller
                     .Concat(device.CompatibleIds)
                     .Concat(device.ParentHardwareIds)
                     .Concat(device.ParentCompatibleIds)
-                    .Concat(device.ParentDeviceIds)
                     .Append(device.DeviceId)
                     .Where(id => !string.IsNullOrWhiteSpace(id))
                     .Select(id => id.Trim())
@@ -85,8 +84,8 @@ public sealed class WindowsUpdateDriverInstaller
                     hardwareId = (Convert.ToString(update.DriverHardwareID) ?? string.Empty).Trim();
                     title = Convert.ToString(update.Title) ?? "Unnamed driver update";
                     provider = Convert.ToString(update.DriverProvider) ?? "Unknown provider";
-                    eulaRequired = Convert.ToBoolean(update.EulaAcceptanceRequired);
-                    eulaAccepted = !eulaRequired || Convert.ToBoolean(update.EulaAccepted);
+                    eulaAccepted = Convert.ToBoolean(update.EulaAccepted);
+                    eulaRequired = !eulaAccepted;
                 }
                 catch
                 {
