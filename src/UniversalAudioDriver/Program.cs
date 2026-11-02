@@ -60,6 +60,7 @@ internal static class Program
                     Console.WriteLine($"Service {service.ServiceName}: {service.StateBefore} -> {service.StateAfter} ({service.Result})");
                 foreach (var package in installReport.DriverPackages)
                     Console.WriteLine($"INF {package.InfPath}: exit {package.ExitCode} ({package.Status})");
+                Console.WriteLine($"PnP rescan exit code: {installReport.PnpRescanExitCode}");
                 Console.WriteLine($"Windows Update drivers: {installReport.WindowsUpdateDrivers.Status}");
                 foreach (var update in installReport.WindowsUpdateDrivers.Packages)
                     Console.WriteLine($"WU: {update.Title} [{update.HardwareId}] - {update.Status}");
@@ -73,7 +74,9 @@ internal static class Program
 
                 return installReport.SpeakerTest.TonePlayed
                     ? 0
-                    : installReport.SpeakerTest.EndpointFound ? 3 : 2;
+                    : installReport.SpeakerTest.EndpointFound
+                        ? 3
+                        : installReport.WindowsUpdateDrivers.RebootRequired ? 4 : 2;
             }
 
             if (args.Any(a => string.Equals(a, "--rescan-pnp", StringComparison.OrdinalIgnoreCase)))
