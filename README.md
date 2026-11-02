@@ -62,10 +62,13 @@ prompt. The setup then:
 
 1. Reads the computer model, processor, BIOS, Windows version and audio PnP
    devices, including hardware IDs, compatible IDs and parent controller IDs.
-   The component report distinguishes controller/DSP, codec, speaker amplifier
-   (for example CS35/MAX98/TAS/RT101 families) and audio software components.
-   It also includes audio-related parent controllers in the System PnP class
-   when they are part of an audio device's ancestry and report a driver problem.
+   It detects common HDA, Intel SST, AMD ACP, SoundWire/SDCA, SLIMbus, I2S/I2C,
+   USB, Bluetooth and HDMI audio paths. The codec catalog recognises Realtek
+   ALC/RT, Cirrus CS35/CS42/CS47, Conexant CX, Qualcomm WCD, Nuvoton NAU,
+   Everest ES, Texas Instruments TAS, Maxim MAX, Dialog DA and AKM families,
+   plus vendor IDs for Analog Devices, IDT, ESS, SigmaTel, VIA, C-Media and
+   Creative. It separates controller/DSP, codec, smart amplifier and audio
+   software roles, and follows parent links to upstream audio dependencies.
 2. Detects whether Windows already exposes the built-in speaker endpoint. If it
    does not, scans the complete discovered audio stack for exact-ID matches in
    the local `Drivers` folder; otherwise it limits local package staging to
