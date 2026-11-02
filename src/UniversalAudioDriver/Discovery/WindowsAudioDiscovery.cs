@@ -95,7 +95,7 @@ public sealed class WindowsAudioDiscovery
                 // Keep the full PnP ancestry so later matching can use real IDs.
                 var parentIds = PnpDeviceTopologyDiscovery.GetParentDeviceIds(id);
                 var classification = Classify(
-                    id, hardwareIds, name, driver.Provider, parentIds);
+                    id, hardwareIds.Concat(compatibleIds).ToArray(), name, driver.Provider, parentIds);
 
                 devices.Add(new AudioDeviceInfo(
                     name,
