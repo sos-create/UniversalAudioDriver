@@ -65,7 +65,7 @@ public static class BuiltInSpeakerEndpointSelector
     {
         var builtIn = new AudioEndpointInfo(
             "Speakers (Realtek(R) Audio)", "endpoint-speakers", "Active",
-            "Multimedia", true, false, 50, "Speakers", @"HDAUDIO\\FUNC_01&VEN_10EC");
+            "Multimedia", true, false, 50, "Speakers", @"HDAUDIO\FUNC_01&VEN_10EC");
         var russianBuiltIn = new AudioEndpointInfo(
             "Динамики (Realtek(R) Audio)", "endpoint-russian-speakers", "Active",
             "Not default", false, false, 50, "Speakers", null);
@@ -97,7 +97,7 @@ public static class BuiltInSpeakerEndpointSelector
             IsLikelyBuiltInSpeaker(headphones) ||
             IsLikelyBuiltInSpeaker(disabled) ||
             Select(new[] { hdmi, builtIn })?.Id != builtIn.Id ||
-            Select(new[] { hdmi, builtIn })?.ControllerDeviceId != @"HDAUDIO\\FUNC_01&VEN_10EC")
+            Select(new[] { hdmi, builtIn })?.ControllerDeviceId != @"HDAUDIO\FUNC_01&VEN_10EC")
         {
             throw new InvalidOperationException("Built-in speaker endpoint classifier self-test failed.");
         }
