@@ -154,7 +154,7 @@ public static class AudioHardwareProfilePlanner
     private static AudioDeviceInfo CreateTestDevice(string deviceId, IReadOnlyList<string> parents) =>
         new(
             "Synthetic test device", deviceId, null, "MEDIA", null, null, null, null,
-            "OK", 0, "Test family", new[] { deviceId }, parents);
+            "OK", 0, "Test family", new[] { deviceId }, Array.Empty<string>(), parents);
 
     private static void AssertArchitecture(AudioDeviceInfo device, string expected)
     {
