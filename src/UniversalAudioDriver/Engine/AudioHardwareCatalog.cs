@@ -208,6 +208,7 @@ public static class AudioHardwareCatalog
     public static void RunSelfTests()
     {
         AssertVendor(@"HDAUDIO\FUNC_01&VEN_10EC", "Realtek");
+        AssertVendor("Realtek ALC295 with parent PCI\\VEN_8086 Intel", "Realtek");
         AssertVendor(@"HDAUDIO\FUNC_01&VEN_1013", "Cirrus Logic");
         AssertVendor(@"HDAUDIO\FUNC_01&VEN_14F1", "Conexant");
         AssertVendor(@"HDAUDIO\FUNC_01&VEN_11D4", "Analog Devices");
