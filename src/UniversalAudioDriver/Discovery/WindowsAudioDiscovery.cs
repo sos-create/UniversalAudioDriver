@@ -87,6 +87,7 @@ public sealed class WindowsAudioDiscovery
                     continue;
 
                 var hardwareIds = ReadStringArray(item, "HardwareID");
+                var compatibleIds = ReadStringArray(item, "CompatibleID");
                 var name = ReadString(item, "Name") ?? "(unnamed device)";
                 drivers.TryGetValue(id, out var driver);
 
@@ -109,6 +110,7 @@ public sealed class WindowsAudioDiscovery
                     ReadUInt(item, "ConfigManagerErrorCode"),
                     classification.Family,
                     hardwareIds,
+                    compatibleIds,
                     parentIds));
             }
         }
