@@ -74,6 +74,7 @@ public sealed class WindowsUpdateDriverInstaller
                 string hardwareId;
                 string title;
                 string provider;
+                bool eulaRequired;
                 bool eulaAccepted;
 
                 try
@@ -81,7 +82,8 @@ public sealed class WindowsUpdateDriverInstaller
                     hardwareId = (Convert.ToString(update.DriverHardwareID) ?? string.Empty).Trim();
                     title = Convert.ToString(update.Title) ?? "Unnamed driver update";
                     provider = Convert.ToString(update.DriverProvider) ?? "Unknown provider";
-                    eulaAccepted = Convert.ToBoolean(update.EulaAccepted);
+                    eulaRequired = Convert.ToBoolean(update.EulaAcceptanceRequired);
+                    eulaAccepted = !eulaRequired || Convert.ToBoolean(update.EulaAccepted);
                 }
                 catch
                 {
@@ -111,6 +113,7 @@ public sealed class WindowsUpdateDriverInstaller
                     title,
                     hardwareId,
                     provider,
+                    eulaRequired,
                     eulaAccepted));
             }
 
@@ -121,7 +124,7 @@ public sealed class WindowsUpdateDriverInstaller
                     ? "Windows Update returned no driver package with an exact audio hardware/compatible ID match."
                     : "Matching updates require an EULA that has not been accepted. No update was installed automatically.";
                 var skipped = matched.Select(update => new WindowsUpdateDriverPackageResult(
-                    update.Title, update.HardwareId, update.Provider, !update.EulaAccepted,
+                    update.Title, update.HardwareId, update.Provider, update.EulaRequired,
                     -1, -1, false,
                     update.EulaAccepted ? "Not installed" : "Skipped: EULA acceptance is required")).ToArray();
 
@@ -283,5 +286,6 @@ public sealed class WindowsUpdateDriverInstaller
         string Title,
         string HardwareId,
         string Provider,
+        bool EulaRequired,
         bool EulaAccepted);
 }
