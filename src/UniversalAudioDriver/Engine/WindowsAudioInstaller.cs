@@ -21,9 +21,18 @@ public sealed class WindowsAudioInstaller
         var system = new WindowsSystemDiscovery().Scan();
         var discovery = new WindowsAudioDiscovery();
         var initialDevices = discovery.Scan();
+        var initialEndpoints = new CoreAudioEndpointDiscovery().ScanRenderEndpoints();
+        var builtInSpeakersAlreadyExposed =
+            BuiltInSpeakerEndpointSelector.Select(initialEndpoints) is not null;
 
+        // If Windows has no built-in speaker endpoint, inspect the entire discovered
+        // audio stack for exact-ID local OEM packages. Otherwise limit local installs
+        // to devices with recoverable PnP errors.
         var packageResults = new SignedDriverPackageInstaller()
-            .InstallMatchingPackages(driverDirectory, initialDevices);
+            .InstallMatchingPackages(
+                driverDirectory,
+                initialDevices,
+                includeHealthyDevices: !builtInSpeakersAlreadyExposed);
 
         // Let Windows apply any newly staged local OEM packages before deciding
         // which devices still need a driver from Windows Update.
