@@ -13,7 +13,7 @@ public static class BuiltInSpeakerEndpointSelector
         "HDMI", "DISPLAYPORT", "BLUETOOTH", "BTHENUM", "USB AUDIO",
         "HEADPHONE", "HEADSET", "DOCK", "WIRELESS",
         "НАУШНИК", "ГАРНИТУР", "БЕСПРОВОД", "ДОК-СТАНЦИЯ",
-        "KOPFHÖRER", "KOPFHORER", "HEADPHONES", "HAUT-PARLEUR",
+        "KOPFHÖRER", "KOPFHORER", "HEADPHONES",
         "ÉCOUTEURS", "ECOUTEURS", "CASQUE"
     };
 
@@ -75,6 +75,9 @@ public static class BuiltInSpeakerEndpointSelector
         var genericBuiltIn = new AudioEndpointInfo(
             "Realtek Audio", "endpoint-generic", "Active",
             "Not default", false, false, 50, "Speakers");
+        var frenchBuiltIn = new AudioEndpointInfo(
+            "Haut-parleurs (Realtek Audio)", "endpoint-french-speakers", "Active",
+            "Not default", false, false, 50, "Speakers");
         var hdmi = new AudioEndpointInfo(
             "Speakers (NVIDIA High Definition Audio HDMI)", "endpoint-hdmi",
             "Active", "Not default", false, false, 50, "HDMI");
@@ -89,6 +92,7 @@ public static class BuiltInSpeakerEndpointSelector
             !IsLikelyBuiltInSpeaker(russianBuiltIn) ||
             !IsLikelyBuiltInSpeaker(germanBuiltIn) ||
             !IsLikelyBuiltInSpeaker(genericBuiltIn) ||
+            !IsLikelyBuiltInSpeaker(frenchBuiltIn) ||
             IsLikelyBuiltInSpeaker(hdmi) ||
             IsLikelyBuiltInSpeaker(headphones) ||
             IsLikelyBuiltInSpeaker(disabled) ||
