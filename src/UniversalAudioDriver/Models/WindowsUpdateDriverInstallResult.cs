@@ -4,6 +4,7 @@ public sealed record WindowsUpdateDriverPackageResult(
     string Title,
     string HardwareId,
     string Provider,
+    IReadOnlyList<string> MatchedDeviceIds,
     bool RequiresEula,
     int DownloadResultCode,
     int InstallResultCode,
