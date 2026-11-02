@@ -154,6 +154,10 @@ internal static class Program
                         Console.WriteLine($"  Hardware ID: {hardwareId}");
                     foreach (var compatibleId in item.CompatibleIds)
                         Console.WriteLine($"  Compatible ID: {compatibleId}");
+                    foreach (var parentHardwareId in item.ParentHardwareIds)
+                        Console.WriteLine($"  Parent controller Hardware ID: {parentHardwareId}");
+                    foreach (var parentCompatibleId in item.ParentCompatibleIds)
+                        Console.WriteLine($"  Parent controller Compatible ID: {parentCompatibleId}");
                     Console.WriteLine($"  {item.Explanation}");
                     Console.WriteLine($"  Backend profile: {item.HardwareProfile.Architecture}");
                     Console.WriteLine($"  Driver model: {item.HardwareProfile.DriverModel}");
