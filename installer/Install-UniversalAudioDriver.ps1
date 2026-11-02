@@ -51,6 +51,9 @@ elseif ($ExitCode -eq 2) {
 elseif ($ExitCode -eq 3) {
     Write-Warning "The speaker endpoint exists, but the playback test failed."
 }
+elseif ($ExitCode -eq 4) {
+    Write-Warning "Windows installed a matching audio driver and requires a restart. Restart Windows, then run this installer again to verify the built-in speakers."
+}
 else {
     Write-Warning "The audio setup process returned exit code $ExitCode."
 }
