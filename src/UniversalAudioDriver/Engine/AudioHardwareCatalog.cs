@@ -10,6 +10,12 @@ public static class AudioHardwareCatalog
     private static readonly (string Marker, string Name)[] Vendors =
     {
         (@"VEN_10EC", "Realtek"),
+        (@"VEN_CIRR", "Cirrus Logic"),
+        (@"VEN_RTK", "Realtek"),
+        (@"VEN_NVT", "Nuvoton"),
+        (@"VEN_MAX", "Maxim Integrated"),
+        (@"VEN_TI", "Texas Instruments"),
+        (@"VEN_AKM", "Asahi Kasei Microdevices"),
         (@"VEN_1013", "Cirrus Logic"),
         (@"VEN_101A", "Cirrus Logic"),
         (@"VEN_14F1", "Conexant"),
@@ -35,6 +41,8 @@ public static class AudioHardwareCatalog
         (@"VEN_144D", "Samsung platform"),
         ("CIRRUS", "Cirrus Logic"),
         ("REALTEK", "Realtek"),
+        ("CIRR", "Cirrus Logic"),
+        ("AKM", "Asahi Kasei Microdevices"),
         ("CONEXANT", "Conexant"),
         ("SYNAPTICS", "Synaptics"),
         ("NUVOTON", "Nuvoton"),
