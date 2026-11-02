@@ -92,9 +92,19 @@ public sealed class WindowsAudioInstaller
 
         if (defaultEndpointConfiguration?.Attempted == true)
         {
-            endpoints = new CoreAudioEndpointDiscovery().ScanRenderEndpoints();
-            defaultEndpointConfiguration = WindowsDefaultAudioEndpointManager.VerifyReadback(
-                defaultEndpointConfiguration, endpoints);
+            // Core Audio may publish role changes shortly after IPolicyConfig returns.
+            // Poll the actual defaults instead of trusting only the COM HRESULT.
+            for (var attempt = 0; attempt < 8; attempt++)
+            {
+                endpoints = new CoreAudioEndpointDiscovery().ScanRenderEndpoints();
+                defaultEndpointConfiguration = WindowsDefaultAudioEndpointManager.VerifyReadback(
+                    defaultEndpointConfiguration, endpoints);
+
+                if (defaultEndpointConfiguration.SystemPlaybackDefaultChanged)
+                    break;
+
+                Thread.Sleep(250);
+            }
         }
 
         var defaultPlaybackReady = defaultEndpointConfiguration?.SystemPlaybackDefaultChanged == true;
