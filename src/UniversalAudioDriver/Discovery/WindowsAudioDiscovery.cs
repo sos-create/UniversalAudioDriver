@@ -1,4 +1,5 @@
 using System.Management;
+using UniversalAudioDriver.Engine;
 using UniversalAudioDriver.Models;
 
 namespace UniversalAudioDriver.Discovery;
