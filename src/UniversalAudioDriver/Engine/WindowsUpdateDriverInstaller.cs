@@ -14,15 +14,18 @@ public sealed class WindowsUpdateDriverInstaller
     private static readonly HashSet<uint> ProblemCodes = new() { 10, 28, 31, 43 };
 
     public WindowsUpdateDriverInstallResult InstallMatchingUpdates(
-        IReadOnlyList<AudioDeviceInfo> devices)
+        IReadOnlyList<AudioDeviceInfo> devices,
+        bool includeHealthyInternalAudioDevices = false)
     {
         ArgumentNullException.ThrowIfNull(devices);
         if (!OperatingSystem.IsWindows())
             throw new PlatformNotSupportedException("Windows Update Agent is available only on Windows.");
 
         var targets = devices
-            .Where(device => ProblemCodes.Contains(device.ProblemCode))
             .Where(device => !string.Equals(device.PnpClass, "AudioEndpoint", StringComparison.OrdinalIgnoreCase))
+            .Where(device =>
+                ProblemCodes.Contains(device.ProblemCode) ||
+                (includeHealthyInternalAudioDevices && IsLikelyInternalAudioStackDevice(device)))
             .Select(device => new
             {
                 Device = device,
@@ -253,6 +256,44 @@ public sealed class WindowsUpdateDriverInstaller
         }
     }
 
+    private static bool IsLikelyInternalAudioStackDevice(AudioDeviceInfo device)
+    {
+        var signature = string.Join(" ", new[]
+            {
+                device.DeviceId, device.Name, device.Family, device.Manufacturer ?? string.Empty
+            }
+            .Concat(device.HardwareIds)
+            .Concat(device.CompatibleIds)
+            .Concat(device.ParentHardwareIds)
+            .Concat(device.ParentCompatibleIds));
+        return LooksLikeInternalAudioStackDevice(signature);
+    }
+
+    private static bool LooksLikeInternalAudioStackDevice(string signature)
+    {
+        var value = signature.ToUpperInvariant();
+
+        // Do not update unrelated external or display-audio paths when the
+        // recovery target is the laptop's built-in speakers.
+        if (value.Contains("USB\\") || value.Contains("BLUETOOTH") ||
+            value.Contains("BTHENUM") || value.Contains("HDMI") ||
+            value.Contains("DISPLAYPORT"))
+            return false;
+
+        string[] internalAudioMarkers =
+        {
+            "INTELAUDIO", "INTEL SMART SOUND", "SMART SOUND", "SST",
+            "VEN_1022&DEV_15E2", "AMD ACP", "AUDIO COPROCESSOR",
+            "HDAUDIO", "SDCA", "SOUNDWIRE", "SLIMBUS", "I2S",
+            "REALTEK", "CIRRUS", "CONEXANT", "CS35", "MAX983", "MAX98",
+            "TAS256", "RT56", "NAU88", "ES83", "WOLFSON",
+            "ANALOG DEVICES", "SIGMATEL", "SMARTAMP", "NAHIMIC",
+            "DOLBY", "WAVES", "MAXX AUDIO"
+        };
+
+        return internalAudioMarkers.Any(value.Contains);
+    }
+
     private static bool IsEulaAccepted(string? eulaText, bool accepted) =>
         string.IsNullOrWhiteSpace(eulaText) || accepted;
 
@@ -277,6 +318,11 @@ public sealed class WindowsUpdateDriverInstaller
             !MatchesExactHardwareId(ids, @"HDAUDIO\FUNC_01&VEN_10EC") ||
             !MatchesExactHardwareId(ids, @"PCI\VEN_8086&DEV_9D70") ||
             MatchesExactHardwareId(ids, @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256&SUBSYS_12345678") ||
+            !LooksLikeInternalAudioStackDevice(@"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256 Realtek") ||
+            !LooksLikeInternalAudioStackDevice(@"PCI\VEN_1022&DEV_15E2 AMD Audio CoProcessor") ||
+            LooksLikeInternalAudioStackDevice(@"USB\VID_1234&PID_5678 USB Audio") ||
+            LooksLikeInternalAudioStackDevice(@"BTHENUM\DEV_1234 Bluetooth Audio") ||
+            LooksLikeInternalAudioStackDevice(@"HDAUDIO\FUNC_01&VEN_10EC HDMI Audio") ||
             !IsEulaAccepted(null, false) ||
             !IsEulaAccepted(string.Empty, false) ||
             !IsEulaAccepted("License terms", true) ||
