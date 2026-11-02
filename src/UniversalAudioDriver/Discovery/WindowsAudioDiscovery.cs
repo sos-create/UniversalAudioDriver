@@ -16,12 +16,17 @@ public sealed class WindowsAudioDiscovery
     private const string AudioFilter =
         "PNPClass = 'MEDIA' OR PNPClass = 'AudioEndpoint' OR " +
         "PNPClass = 'SoftwareComponent' OR Name LIKE '%Audio%' OR " +
-        "Name LIKE '%Sound%' OR Name LIKE '%Speaker%' OR " +
+        "Name LIKE '%Sound%' OR Name LIKE '%Speaker%' OR Name LIKE '%Codec%' OR " +
+        "Name LIKE '%Amplifier%' OR Name LIKE '%SmartAmp%' OR " +
         "Name LIKE '%Realtek%' OR Name LIKE '%Conexant%' OR " +
         "Name LIKE '%Cirrus%' OR Name LIKE '%Intel(R) Smart Sound%' OR " +
         "Name LIKE '%Dolby%' OR Name LIKE '%DTS%' OR Name LIKE '%Nahimic%' OR " +
+        "Name LIKE '%MAX98%' OR Name LIKE '%CS35%' OR Name LIKE '%TAS25%' OR " +
+        "Name LIKE '%NAU88%' OR Name LIKE '%RT101%' OR Name LIKE '%RT568%' OR " +
+        "Name LIKE '%ES83%' OR Name LIKE '%CS42%' OR " +
         "DeviceID LIKE '%HDAUDIO%' OR DeviceID LIKE '%INTELAUDIO%' OR " +
-        "DeviceID LIKE '%SDCA%'";
+        "DeviceID LIKE '%SDCA%' OR DeviceID LIKE '%SOUNDWIRE%' OR " +
+        "DeviceID LIKE '%SLIMBUS%' OR DeviceID LIKE '%I2S%' OR DeviceID LIKE '%ACP%'";
 
     private static readonly (string Id, string Name)[] PciVendors =
     {
@@ -362,7 +367,9 @@ public sealed class WindowsAudioDiscovery
             "REALTEK", "CONEXANT", "CIRRUS", "CREATIVE", "SOUND BLASTER",
             "C-MEDIA", "CMEDIA", "VIA", "ESS TECHNOLOGY", "ANALOG DEVICES",
             "SIGMATEL", "QUALCOMM", "MEDIATEK", "NVIDIA", "AMD", "INTEL",
-            "DOLBY", "DTS", "NAHIMIC", "MAXX AUDIO", "WAVES"
+            "DOLBY", "DTS", "NAHIMIC", "MAXX AUDIO", "WAVES",
+            "MAXIM", "MAX983", "NUVOTON", "NAU88", "TEXAS INSTRUMENTS",
+            "SMARTAMP", "WOLFSON", "GOODIX", "DIALOG", "TAS256", "CS35"
         };
 
         return vendors.FirstOrDefault(value.Contains);
