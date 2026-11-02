@@ -55,6 +55,26 @@ The adaptive output path uses Windows Core Audio/WASAPI in shared mode. It selec
 This is not yet a custom kernel-mode audio driver. It does not replace Intel SST, AMD ACP, Realtek, Cirrus Logic, codec, amplifier, ACPI or DSP drivers. A hardware-specific kernel miniport/topology module cannot be implemented or safely tested without the target controller/codec IDs and platform routing information. The project deliberately does not overwrite existing vendor drivers or install a virtual sample as a physical-speaker driver.
 
 
+## Persistent Windows installation
+
+The one-click installer deploys the recovery utility to
+`%ProgramFiles%\\UniversalAudioDriver` and keeps its local signed OEM packages
+and reports in `%ProgramData%\\UniversalAudioDriver`. It does not place an
+ordinary EXE in the Windows kernel folders.
+
+Matched OEM INF packages are passed to Windows PnPUtil
+(`pnputil /add-driver ... /install`). PnPUtil stages accepted packages in the
+protected Windows Driver Store, normally
+`%SystemRoot%\\System32\\DriverStore\\FileRepository`, and Windows Plug and
+Play decides whether a signed package applies and binds it to each device.
+The utility prints the resulting PnP driver provider, version, INF name and
+problem code so that a staged package is not confused with a successfully
+bound/working device driver.
+
+This is a persistent, standard Windows driver installation path for matched
+OEM packages. It is **not** a universal custom kernel audio miniport; it cannot
+create missing hardware-specific controller, codec, DSP or amplifier drivers.
+
 ## Installation-time detection and preparation
 
 The published Windows bundle includes a one-click launcher,
