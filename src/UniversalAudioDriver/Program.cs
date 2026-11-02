@@ -128,8 +128,8 @@ internal static class Program
             if (args.Any(a => string.Equals(a, "--test-speakers", StringComparison.OrdinalIgnoreCase)))
             {
                 Console.WriteLine("Finding the laptop's built-in speakers...");
-                var endpoints = new CoreAudioEndpointDiscovery().ScanRenderEndpoints();
-                var speaker = BuiltInSpeakerEndpointSelector.Select(endpoints);
+                var speakerEndpoints = new CoreAudioEndpointDiscovery().ScanRenderEndpoints();
+                var speaker = BuiltInSpeakerEndpointSelector.Select(speakerEndpoints);
                 if (speaker is null)
                 {
                     Console.Error.WriteLine("No active built-in speaker endpoint was found. Windows must expose the internal speakers through an installed controller/codec driver first.");
@@ -154,8 +154,8 @@ internal static class Program
 
                 for (var attempt = 0; attempt < 8; attempt++)
                 {
-                    endpoints = new CoreAudioEndpointDiscovery().ScanRenderEndpoints();
-                    routing = WindowsDefaultAudioEndpointManager.VerifyReadback(routing, endpoints);
+                    speakerEndpoints = new CoreAudioEndpointDiscovery().ScanRenderEndpoints();
+                    routing = WindowsDefaultAudioEndpointManager.VerifyReadback(routing, speakerEndpoints);
                     if (routing.SystemPlaybackDefaultChanged)
                         break;
                     Thread.Sleep(250);
