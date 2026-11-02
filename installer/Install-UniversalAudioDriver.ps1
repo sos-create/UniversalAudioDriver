@@ -54,6 +54,9 @@ elseif ($ExitCode -eq 3) {
 elseif ($ExitCode -eq 4) {
     Write-Warning "Windows installed a matching audio driver and requires a restart. Restart Windows, then run this installer again to verify the built-in speakers."
 }
+elseif ($ExitCode -eq 5) {
+    Write-Warning "The built-in speakers passed the test tone, but Windows did not confirm changing the system default output. Check audio-install-report.json."
+}
 else {
     Write-Warning "The audio setup process returned exit code $ExitCode."
 }
