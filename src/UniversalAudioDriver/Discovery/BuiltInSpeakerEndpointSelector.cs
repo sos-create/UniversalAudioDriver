@@ -65,28 +65,28 @@ public static class BuiltInSpeakerEndpointSelector
     {
         var builtIn = new AudioEndpointInfo(
             "Speakers (Realtek(R) Audio)", "endpoint-speakers", "Active",
-            "Multimedia", true, false, 50, "Speakers");
+            "Multimedia", true, false, 50, "Speakers", @"HDAUDIO\\FUNC_01&VEN_10EC");
         var russianBuiltIn = new AudioEndpointInfo(
             "Динамики (Realtek(R) Audio)", "endpoint-russian-speakers", "Active",
-            "Not default", false, false, 50, "Speakers");
+            "Not default", false, false, 50, "Speakers", null);
         var germanBuiltIn = new AudioEndpointInfo(
             "Lautsprecher (Realtek(R) Audio)", "endpoint-german-speakers", "Active",
-            "Not default", false, false, 50, "Speakers");
+            "Not default", false, false, 50, "Speakers", null);
         var genericBuiltIn = new AudioEndpointInfo(
             "Realtek Audio", "endpoint-generic", "Active",
-            "Not default", false, false, 50, "Speakers");
+            "Not default", false, false, 50, "Speakers", null);
         var frenchBuiltIn = new AudioEndpointInfo(
             "Haut-parleurs (Realtek Audio)", "endpoint-french-speakers", "Active",
-            "Not default", false, false, 50, "Speakers");
+            "Not default", false, false, 50, "Speakers", null);
         var hdmi = new AudioEndpointInfo(
             "Speakers (NVIDIA High Definition Audio HDMI)", "endpoint-hdmi",
-            "Active", "Not default", false, false, 50, "HDMI");
+            "Active", "Not default", false, false, 50, "HDMI", null);
         var headphones = new AudioEndpointInfo(
             "Headphones (Realtek Audio)", "endpoint-headphones",
-            "Active", "Not default", false, false, 50, "Headphones");
+            "Active", "Not default", false, false, 50, "Headphones", null);
         var disabled = new AudioEndpointInfo(
             "Speakers (Cirrus Audio)", "endpoint-disabled",
-            "Disabled", "Not default", false, false, 50, "Speakers");
+            "Disabled", "Not default", false, false, 50, "Speakers", null);
 
         if (!IsLikelyBuiltInSpeaker(builtIn) ||
             !IsLikelyBuiltInSpeaker(russianBuiltIn) ||
@@ -96,7 +96,8 @@ public static class BuiltInSpeakerEndpointSelector
             IsLikelyBuiltInSpeaker(hdmi) ||
             IsLikelyBuiltInSpeaker(headphones) ||
             IsLikelyBuiltInSpeaker(disabled) ||
-            Select(new[] { hdmi, builtIn })?.Id != builtIn.Id)
+            Select(new[] { hdmi, builtIn })?.Id != builtIn.Id ||
+            Select(new[] { hdmi, builtIn })?.ControllerDeviceId != @"HDAUDIO\\FUNC_01&VEN_10EC")
         {
             throw new InvalidOperationException("Built-in speaker endpoint classifier self-test failed.");
         }
