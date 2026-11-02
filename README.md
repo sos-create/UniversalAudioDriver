@@ -86,10 +86,14 @@ prompt. The setup then:
 6. Requests a PnP rescan and starts the standard Windows audio services when
    possible.
 7. Uses the native Windows endpoint form-factor property, with localized-name
-   fallback, to identify built-in speakers. It attempts to set the speakers as
-   the Console, Multimedia and Communications default output, then submits a
-   short low-volume test stream directly to that endpoint. It only confirms
-   that Windows accepted the stream; it cannot measure acoustic output.
+   fallback, to identify built-in speakers. Before playback, it attempts to set
+   that endpoint as the Console, Multimedia and Communications default output,
+   so Windows system sounds and applications are routed there unless an app has
+   its own output override. It then unmutes the selected endpoint and raises its
+   endpoint volume to 20% only when it was muted or below that conservative floor
+   (higher existing volume levels are left unchanged), before submitting a short
+   low-volume WASAPI test stream. It reports the volume/mute operation; it still
+   cannot measure acoustic output from the physical speaker cones.
 8. Writes `audio-install-report.json` with system information, all device IDs,
    parent-controller IDs, detected backend profile, matching local/WU packages,
    service state, default-output HRESULTs and the speaker playback result.
