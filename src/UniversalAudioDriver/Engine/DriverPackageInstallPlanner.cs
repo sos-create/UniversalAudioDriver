@@ -24,24 +24,36 @@ public static class DriverPackageInstallPlanner
             ids.Contains(@"SWC\"))
             return (4, "OEM extension / software component");
 
-        // Parent PCI controllers and the AMD ACP platform device must be staged
-        // before serial-bus codecs and HDAudio function devices.
+        // Platform controllers must be staged before dependent DSP and codec
+        // packages. This includes PCI, AMD ACP, Qualcomm, MediaTek and NXP hosts.
         if ((infClass.Equals("System", StringComparison.OrdinalIgnoreCase) &&
-             ids.Contains(@"PCI\")) ||
+             (ids.Contains(@"PCI\\") || ids.Contains("QCOM") ||
+              ids.Contains("QUALCOMM") || ids.Contains("MTK") ||
+              ids.Contains("MEDIATEK") || ids.Contains("NXP") ||
+              ids.Contains("FREESCALE") || ids.Contains("IMX") ||
+              ids.Contains("SAI"))) ||
             ids.Contains(@"PCI\VEN_1022&DEV_15E2") ||
             ids.Contains("AMD ACP") ||
             ids.Contains("AMD AUDIO COPROCESSOR"))
             return (0, "Platform controller");
 
-        if (ids.Contains("SOUNDWIRE") || ids.Contains("SLIMBUS"))
-            return (1, "Audio transport / DSP bus");
-
-        if (ids.Contains("INTELAUDIO") || ids.Contains("INTEL SMART SOUND") ||
-            ids.Contains("SMART SOUND TECHNOLOGY") || ids.Contains("SST"))
-            return (1, "Intel Smart Sound / DSP");
+        // DSP firmware and serial transport drivers precede codec functions.
+        if (ids.Contains("SOUNDWIRE") || ids.Contains("SLIMBUS") ||
+            ids.Contains("INTELAUDIO") || ids.Contains("INTEL SMART SOUND") ||
+            ids.Contains("SMART SOUND TECHNOLOGY") || ids.Contains("SST") ||
+            ids.Contains("SOUND OPEN FIRMWARE") || ids.Contains("SOF DSP") ||
+            ids.Contains("ADSP") || ids.Contains("QCOM") ||
+            ids.Contains("QUALCOMM") || ids.Contains("MTK AUDIO DSP") ||
+            ids.Contains("MT635") || ids.Contains("I2S") || ids.Contains("SAI"))
+            return (1, "Audio transport / DSP");
 
         if (ids.Contains("SDCA") || ids.Contains("HDAUDIO") ||
-            ids.Contains("I2S") || infClass.Equals("MEDIA", StringComparison.OrdinalIgnoreCase))
+            ids.Contains("WCD") || ids.Contains("TFA98") || ids.Contains("TFA99") ||
+            ids.Contains("ALC") || ids.Contains("RT56") || ids.Contains("RT101") ||
+            ids.Contains("CS35") || ids.Contains("CS42") || ids.Contains("CS47") ||
+            ids.Contains("CX") || ids.Contains("NAU88") || ids.Contains("ES83") ||
+            ids.Contains("TAS") || ids.Contains("MAX98") || ids.Contains("DA721") ||
+            infClass.Equals("MEDIA", StringComparison.OrdinalIgnoreCase))
             return (2, "Codec / amplifier / audio function");
 
         return (3, "Other matched audio component");
@@ -91,12 +103,32 @@ public static class DriverPackageInstallPlanner
         var extension = Classify(
             "[Version]\r\nClass=Extension\r\n",
             new[] { @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256" });
+        var qualcommController = Classify(
+            "[Version]\r\nClass=System\r\n",
+            new[] { @"ACPI\QCOM1234" });
+        var qualcommDsp = Classify(
+            "[Version]\r\nClass=MEDIA\r\n",
+            new[] { @"ACPI\QCOM&DEV_ADSP" });
+        var mediatekCodec = Classify(
+            "[Version]\r\nClass=MEDIA\r\n",
+            new[] { @"ACPI\MTK&DEV_MT6359" });
+        var nxpAmp = Classify(
+            "[Version]\r\nClass=MEDIA\r\n",
+            new[] { @"ACPI\NXP&TFA9874" });
+        var sofDsp = Classify(
+            "[Version]\r\nClass=MEDIA\r\n",
+            new[] { "Sound Open Firmware DSP" });
 
         if (controller.Order >= transport.Order ||
             transport.Order >= codec.Order ||
             codec.Order >= extension.Order ||
             !controller.Name.Contains("controller", StringComparison.OrdinalIgnoreCase) ||
-            !extension.Name.Contains("extension", StringComparison.OrdinalIgnoreCase))
+            !extension.Name.Contains("extension", StringComparison.OrdinalIgnoreCase) ||
+            qualcommController.Order != 0 ||
+            qualcommDsp.Order != 1 ||
+            mediatekCodec.Order != 1 ||
+            nxpAmp.Order != 1 ||
+            sofDsp.Order != 1)
         {
             throw new InvalidOperationException("Driver bundle dependency-order self-test failed.");
         }
