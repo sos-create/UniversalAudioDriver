@@ -80,7 +80,8 @@ prompt. The setup then:
 6. Uses the native Windows endpoint form-factor property, with localized-name
    fallback, to identify built-in speakers. It attempts to set the speakers as
    the Console, Multimedia and Communications default output, then submits a
-   short low-volume test tone directly to that endpoint.
+   short low-volume test stream directly to that endpoint. It only confirms
+   that Windows accepted the stream; it cannot measure acoustic output.
 7. Writes `audio-install-report.json` with system information, all device IDs,
    parent-controller IDs, detected backend profile, matching local/WU packages,
    service state, default-output HRESULTs and the speaker playback result.
@@ -103,7 +104,6 @@ Windows speaker path, and can retrieve matching OEM/Windows Update packages.
 It cannot synthesize a missing Intel SST/AMD ACP/HDA/SoundWire kernel miniport,
 codec driver, DSP firmware, amplifier driver or OEM ACPI topology from generic
 blocks. Those components must exist for the exact hardware, or be implemented
-as a hardware-specific driver module and validated on the actual laptop. A
-successful test tone confirms that Windows accepted playback on the selected
-endpoint; it does not qualify every speaker, jack, microphone, sleep/resume or
-power-state path.
+as a hardware-specific driver module and validated on the actual laptop. A successful WASAPI test confirms that Windows accepted an audio stream on the
+selected endpoint; it cannot prove that sound physically came out of the speaker
+cones or qualify every speaker, jack, microphone, sleep/resume or power-state path.
