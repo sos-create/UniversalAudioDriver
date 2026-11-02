@@ -14,6 +14,7 @@ public sealed class CoreAudioEndpointDiscovery
         var endpoints = new List<AudioEndpointInfo>();
         var defaultIds = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+        ReadDefault(enumerator, Role.Console, "Console", defaultIds);
         ReadDefault(enumerator, Role.Multimedia, "Multimedia", defaultIds);
         ReadDefault(enumerator, Role.Communications, "Communications", defaultIds);
 
