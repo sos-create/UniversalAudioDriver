@@ -53,13 +53,13 @@ public static class BuiltInSpeakerEndpointSelector
             endpoint.FormFactor.Equals("RemoteNetworkDevice", StringComparison.OrdinalIgnoreCase))
             return false;
 
-        return name.Contains("SPEAKER") ||
-               name.Contains("INTERNAL AUDIO") ||
-               name.Contains("ДИНАМИК") ||
-               name.Contains("LAUTSPRECHER") ||
-               name.Contains("ALTAVOCES") ||
-               name.Contains("ALTOPARLANTI") ||
-               name.Contains("HAUT-PARLEUR");
+        return endpointSignature.Contains("SPEAKER") ||
+               endpointSignature.Contains("INTERNAL AUDIO") ||
+               endpointSignature.Contains("ДИНАМИК") ||
+               endpointSignature.Contains("LAUTSPRECHER") ||
+               endpointSignature.Contains("ALTAVOCES") ||
+               endpointSignature.Contains("ALTOPARLANTI") ||
+               endpointSignature.Contains("HAUT-PARLEUR");
     }
 
     public static void RunSelfTests()
