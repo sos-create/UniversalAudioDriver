@@ -30,6 +30,7 @@ internal static class Program
             {
                 AudioHardwareProfilePlanner.RunSelfTests();
                 SignedDriverPackageInstaller.RunSelfTests();
+                WindowsUpdateDriverInstaller.RunSelfTests();
                 BuiltInSpeakerEndpointSelector.RunSelfTests();
                 Console.WriteLine("Hardware profile, exact INF matching and speaker endpoint self-tests passed.");
                 return 0;
