@@ -135,6 +135,13 @@ internal static class Program
                 {
                     Console.WriteLine($"[{item.Result}] {item.DeviceName}");
                     Console.WriteLine($"  Family: {item.DetectedFamily}");
+                    Console.WriteLine($"  Device ID: {item.DeviceId}");
+                    Console.WriteLine($"  PnP class: {item.PnpClass ?? "unknown"}; status: {item.DeviceStatus}; problem code: {item.ProblemCode}");
+                    Console.WriteLine($"  Driver: {item.DriverProvider ?? "unknown"} {item.DriverVersion ?? ""}; INF: {item.InfName ?? "unknown"}");
+                    foreach (var hardwareId in item.HardwareIds)
+                        Console.WriteLine($"  Hardware ID: {hardwareId}");
+                    foreach (var compatibleId in item.CompatibleIds)
+                        Console.WriteLine($"  Compatible ID: {compatibleId}");
                     Console.WriteLine($"  {item.Explanation}");
                     Console.WriteLine($"  Backend profile: {item.HardwareProfile.Architecture}");
                     Console.WriteLine($"  Driver model: {item.HardwareProfile.DriverModel}");
