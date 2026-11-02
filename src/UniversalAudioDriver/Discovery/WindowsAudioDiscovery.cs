@@ -26,7 +26,8 @@ public sealed class WindowsAudioDiscovery
         "Name LIKE '%ES83%' OR Name LIKE '%CS42%' OR " +
         "DeviceID LIKE '%HDAUDIO%' OR DeviceID LIKE '%INTELAUDIO%' OR " +
         "DeviceID LIKE '%SDCA%' OR DeviceID LIKE '%SOUNDWIRE%' OR " +
-        "DeviceID LIKE '%SLIMBUS%' OR DeviceID LIKE '%I2S%' OR DeviceID LIKE '%ACP%'";
+        "DeviceID LIKE '%SLIMBUS%' OR DeviceID LIKE '%I2S%' OR " +
+        "Name LIKE '%Audio CoProcessor%' OR Name LIKE '%AMD ACP%'";
 
     private static readonly (string Id, string Name)[] PciVendors =
     {
