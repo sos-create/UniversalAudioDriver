@@ -79,8 +79,14 @@ public sealed class WindowsAudioInstaller
                   ?? devices.FirstOrDefault(device =>
                     device.ParentDeviceIds.Contains(endpointControllerId, StringComparer.OrdinalIgnoreCase));
 
-            // First verify that WASAPI can open the selected endpoint and submit audio.
-            // Do not change the user's system default if this basic path fails.
+            // Route Windows system audio to the built-in speakers before testing.
+            // Apps and Windows notification sounds use the selected default render endpoint
+            // unless an app has an explicit per-application output override.
+            defaultEndpointConfiguration = new WindowsDefaultAudioEndpointManager()
+                .SetBuiltInSpeakersAsDefault(speakerEndpoint);
+
+            // Unmute the endpoint, ensure a conservative non-zero endpoint volume,
+            // then verify that WASAPI can open it and submit a low-volume test stream.
             try
             {
                 var playback = new AdaptiveAudioOutput().PlayTestToneOnEndpoint(
@@ -92,7 +98,7 @@ public sealed class WindowsAudioInstaller
                     endpointControllerId,
                     linkedPnpDevice?.Name,
                     true,
-                    $"Low-volume test stream accepted via {playback.ShareMode} at {playback.SampleRate} Hz / {playback.Channels} channel(s).");
+                    $"Low-volume test stream accepted via {playback.ShareMode} at {playback.SampleRate} Hz / {playback.Channels} channel(s). {playback.OutputPreparation}");
             }
             catch (Exception ex)
             {
@@ -102,11 +108,6 @@ public sealed class WindowsAudioInstaller
                     $"Speaker endpoint exists, but WASAPI could not submit the test stream: {ex.Message}");
             }
 
-            if (speakerTest.ToneSubmitted)
-            {
-                defaultEndpointConfiguration = new WindowsDefaultAudioEndpointManager()
-                    .SetBuiltInSpeakersAsDefault(speakerEndpoint);
-            }
         }
 
         if (defaultEndpointConfiguration?.Attempted == true)
