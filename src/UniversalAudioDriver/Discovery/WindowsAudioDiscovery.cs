@@ -9,7 +9,7 @@ public sealed class WindowsAudioDiscovery
 
     private static readonly string[] AudioParentMarkers =
     {
-        "AUDIO", "SOUND", "SST", "ACP", "HDAUDIO", "SDCA",
+        "AUDIO", "SOUND", "SST", "AMD ACP", "AUDIO COPROCESSOR", "HDAUDIO", "SDCA",
         "SOUNDWIRE", "SLIMBUS", "I2S", "CODEC", "DSP", "SMART SOUND"
     };
 
