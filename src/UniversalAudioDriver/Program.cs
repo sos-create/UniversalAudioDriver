@@ -64,6 +64,12 @@ internal static class Program
                     Console.WriteLine($"[{item.Result}] {item.DeviceName}");
                     Console.WriteLine($"  Family: {item.DetectedFamily}");
                     Console.WriteLine($"  {item.Explanation}");
+                    if (item.ParentDeviceIds.Count > 0)
+                    {
+                        Console.WriteLine("  PnP parent chain (device IDs):");
+                        foreach (var parentId in item.ParentDeviceIds)
+                            Console.WriteLine($"    -> {parentId}");
+                    }
                     foreach (var check in item.NextChecks)
                         Console.WriteLine($"  - {check}");
                     Console.WriteLine();
