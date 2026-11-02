@@ -60,6 +60,14 @@ internal static class Program
                 File.WriteAllText(reportPath, reportJson);
 
                 Console.WriteLine($"Computer: {installReport.System.Manufacturer} {installReport.System.Model}");
+                Console.WriteLine("Detected audio device driver bindings after installation:");
+                foreach (var device in installReport.HardwareAssessments)
+                {
+                    Console.WriteLine($"  {device.DeviceName}");
+                    Console.WriteLine($"    PnP: {device.DeviceStatus}; problem code: {device.ProblemCode}");
+                    Console.WriteLine($"    Provider: {device.DriverProvider ?? "unknown"}; version: {device.DriverVersion ?? "unknown"}; INF: {device.InfName ?? "unknown"}");
+                    Console.WriteLine($"    Architecture: {device.HardwareProfile.Architecture}; role: {device.HardwareProfile.DriverModel}");
+                }
                 Console.WriteLine(installReport.Status);
                 foreach (var service in installReport.Services)
                     Console.WriteLine($"Service {service.ServiceName}: {service.StateBefore} -> {service.StateAfter} ({service.Result})");
