@@ -87,15 +87,17 @@ internal static class Program
                         Console.WriteLine($"  {role.Role}: {role.Status}");
                 }
                 Console.WriteLine(installReport.SpeakerTest.Result);
+                if (installReport.SpeakerTest.ToneSubmitted)
+                    Console.WriteLine("Note: Windows accepted the audio stream; actual acoustic output from the physical speakers cannot be measured by this software.");
                 Console.WriteLine(installReport.NextStep);
                 Console.WriteLine($"Detailed report: {Path.GetFullPath(reportPath)}");
 
                 return installReport.WindowsUpdateDrivers.RebootRequired
                     ? 4
-                    : installReport.SpeakerTest.TonePlayed &&
+                    : installReport.SpeakerTest.ToneSubmitted &&
                       installReport.DefaultPlaybackEndpoint?.SystemPlaybackDefaultChanged == true
                         ? 0
-                        : installReport.SpeakerTest.TonePlayed
+                        : installReport.SpeakerTest.ToneSubmitted
                             ? 5
                             : installReport.SpeakerTest.EndpointFound ? 3 : 2;
             }
