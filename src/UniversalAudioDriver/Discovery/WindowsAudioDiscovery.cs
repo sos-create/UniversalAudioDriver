@@ -472,6 +472,26 @@ public sealed class WindowsAudioDiscovery
         return "Unclassified audio architecture";
     }
 
+    public static void RunSelfTests()
+    {
+        AssertArchitecture("INTELAUDIO\\DSP", "Intel Smart Sound Technology (SST)");
+        AssertArchitecture(@"PCI\\VEN_1022&DEV_15E2 AMD Audio CoProcessor", "AMD Audio CoProcessor (ACP)");
+        AssertArchitecture("Qualcomm WCD9385 ADSP", "Qualcomm audio DSP / WCD");
+        AssertArchitecture("MediaTek MT6359 Audio", "MediaTek audio DSP / codec");
+        AssertArchitecture("NXP TFA9874 SAI I2S", "NXP / Freescale i.MX SAI / I2S");
+        AssertArchitecture("Sound Open Firmware DSP", "Sound Open Firmware (SOF) DSP");
+        AssertArchitecture(@"HDAUDIO\\FUNC_01&VEN_10EC", "High Definition Audio (HDA) bus");
+        AssertArchitecture(@"USB\\VID_1234&PID_5678", "USB Audio Class");
+    }
+
+    private static void AssertArchitecture(string signature, string expected)
+    {
+        var actual = DetectArchitecture(signature);
+        if (!actual.Equals(expected, StringComparison.Ordinal))
+            throw new InvalidOperationException(
+                $"PnP architecture self-test failed for '{signature}': '{actual}' != '{expected}'.");
+    }
+
     private static string? ReadString(ManagementBaseObject item, string property) =>
         item[property]?.ToString();
 
