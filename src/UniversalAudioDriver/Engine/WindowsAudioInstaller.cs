@@ -79,10 +79,10 @@ public sealed class WindowsAudioInstaller
             ? "Ready: Windows accepted playback through the built-in speakers and they are now the system default output."
             : speakerTest.TonePlayed
                 ? "Playback verified on the built-in speakers, but Windows did not confirm changing the system default output. Some apps may still use their existing/per-app route."
-                : speakerTest.EndpointFound
-                    ? "Partially configured: a built-in speaker endpoint exists, but test playback failed."
-                    : windowsUpdateResult.RebootRequired
-                        ? "Restart required: Windows Update installed a matching audio driver and reports that Windows must restart before the device can be re-enumerated."
+                : windowsUpdateResult.RebootRequired
+                    ? "Restart required: Windows Update installed a matching audio driver and reports that Windows must restart before the device can be re-enumerated."
+                    : speakerTest.EndpointFound
+                        ? "Partially configured: a built-in speaker endpoint exists, but test playback failed."
                         : "Not ready: no active built-in speaker endpoint is exposed by the current Windows audio driver stack.";
 
         var nextStep = speakerTest.TonePlayed && defaultPlaybackReady
