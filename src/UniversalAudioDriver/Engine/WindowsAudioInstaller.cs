@@ -74,6 +74,9 @@ public sealed class WindowsAudioInstaller
             }
         }
 
+        if (defaultEndpointConfiguration?.SystemPlaybackDefaultChanged == true)
+            endpoints = new CoreAudioEndpointDiscovery().ScanRenderEndpoints();
+
         var defaultPlaybackReady = defaultEndpointConfiguration?.SystemPlaybackDefaultChanged == true;
         var status = speakerTest.TonePlayed && defaultPlaybackReady
             ? "Ready: Windows accepted playback through the built-in speakers and they are now the system default output."
