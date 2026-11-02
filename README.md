@@ -52,3 +52,33 @@ The rescan command requests a normal Windows PnP rescan. The test-tone command i
 The adaptive output path uses Windows Core Audio/WASAPI in shared mode. It selects an active render endpoint, prefers the default multimedia endpoint, reads the endpoint's current mix sample rate/channel count, and configures playback to those values. This can send audio through the laptop's physical speakers **when the installed Windows controller/codec/amplifier driver stack already exposes those speakers as an active render endpoint**.
 
 This is not yet a custom kernel-mode audio driver. It does not replace Intel SST, AMD ACP, Realtek, Cirrus Logic, codec, amplifier, ACPI or DSP drivers. A hardware-specific kernel miniport/topology module cannot be implemented or safely tested without the target controller/codec IDs and platform routing information. The project deliberately does not overwrite existing vendor drivers or install a virtual sample as a physical-speaker driver.
+
+
+## Installation-time detection and preparation
+
+The published installer bundle contains Install-UniversalAudioDriver.ps1. Run it
+from the extracted bundle; it requests administrator permission and then:
+
+1. Reads the computer model, BIOS, processor and audio PnP hardware IDs.
+2. Scans the local Drivers folder for INF packages containing exact device IDs.
+3. Offers only those packages to Windows PnPUtil using /add-driver /install.
+4. Lets Windows enforce catalog signature checks and driver ranking; it never
+   uses /force or disables driver-signature enforcement.
+5. Requests a standard PnP rescan and starts AudioEndpointBuilder/Audiosrv if
+   they are stopped and not disabled.
+6. Searches for an active render endpoint clearly named as built-in speakers and
+   submits a brief low-volume test tone to that endpoint.
+7. Writes audio-install-report.json beside the executable.
+
+To add a laptop manufacturer's package, place its complete signed audio driver
+package in the Drivers folder and run the installer again. The INF must identify
+one of the detected hardware IDs. Windows can still reject a package or decide
+that another driver has a better rank.
+
+This installer can configure and verify an already supported Windows speaker
+path. It cannot synthesize a missing Intel SST/AMD ACP/HDA/SoundWire kernel
+miniport, codec driver, DSP firmware, amplifier driver or OEM ACPI topology from
+generic blocks. Those pieces must exist for the exact hardware. A successful
+software test tone is evidence that Windows accepted playback on the selected
+endpoint, not a complete hardware qualification of every speaker, jack,
+microphone, sleep/resume and power-state path.
