@@ -11,7 +11,8 @@ public static class BuiltInSpeakerEndpointSelector
     private static readonly string[] ExternalMarkers =
     {
         "HDMI", "DISPLAYPORT", "BLUETOOTH", "BTHENUM", "USB AUDIO",
-        "HEADPHONE", "HEADSET", "DOCK", "WIRELESS"
+        "HEADPHONE", "HEADSET", "DOCK", "WIRELESS",
+        "НАУШНИК", "ГАРНИТУР", "БЕСПРОВОД", "ДОК-СТАНЦИЯ"
     };
 
     public static AudioEndpointInfo? Select(IEnumerable<AudioEndpointInfo> endpoints)
@@ -36,7 +37,9 @@ public static class BuiltInSpeakerEndpointSelector
         if (ExternalMarkers.Any(name.Contains))
             return false;
 
-        return name.Contains("SPEAKER") || name.Contains("INTERNAL AUDIO");
+        return name.Contains("SPEAKER") ||
+               name.Contains("INTERNAL AUDIO") ||
+               name.Contains("ДИНАМИК");
     }
 
     public static void RunSelfTests()
@@ -44,6 +47,9 @@ public static class BuiltInSpeakerEndpointSelector
         var builtIn = new AudioEndpointInfo(
             "Speakers (Realtek(R) Audio)", "endpoint-speakers", "Active",
             "Multimedia", true, false, 50);
+        var russianBuiltIn = new AudioEndpointInfo(
+            "Динамики (Realtek(R) Audio)", "endpoint-russian-speakers", "Active",
+            "Not default", false, false, 50);
         var hdmi = new AudioEndpointInfo(
             "Speakers (NVIDIA High Definition Audio HDMI)", "endpoint-hdmi",
             "Active", "Not default", false, false, 50);
@@ -55,6 +61,7 @@ public static class BuiltInSpeakerEndpointSelector
             "Disabled", "Not default", false, false, 50);
 
         if (!IsLikelyBuiltInSpeaker(builtIn) ||
+            !IsLikelyBuiltInSpeaker(russianBuiltIn) ||
             IsLikelyBuiltInSpeaker(hdmi) ||
             IsLikelyBuiltInSpeaker(headphones) ||
             IsLikelyBuiltInSpeaker(disabled) ||
