@@ -178,17 +178,29 @@ public sealed class WindowsDefaultAudioEndpointManager
             true, "Speakers", "test-id",
             true, false, true, "failed", Array.Empty<AudioEndpointRoleChange>());
 
-        if (!fullSuccess.SystemPlaybackDefaultChanged ||
-            !communicationsFailure.SystemPlaybackDefaultChanged ||
-            multimediaFailure.SystemPlaybackDefaultChanged ||
-            !verifiedReadback.SystemPlaybackDefaultChanged ||
-            !verifiedReadback.RoleResults.All(role => role.Succeeded) ||
-            missingMultimedia.SystemPlaybackDefaultChanged ||
-            (int)AudioEndpointRole.Console != 0 ||
-            (int)AudioEndpointRole.Multimedia != 1 ||
-            (int)AudioEndpointRole.Communications != 2)
+        var checks = new Dictionary<string, bool>
         {
-            throw new InvalidOperationException("Default speaker routing self-test failed.");
+            ["Console+Multimedia success"] = fullSuccess.SystemPlaybackDefaultChanged,
+            ["Communications failure must not block playback"] = communicationsFailure.SystemPlaybackDefaultChanged,
+            ["Multimedia failure must block playback"] = !multimediaFailure.SystemPlaybackDefaultChanged,
+            ["Readback confirms speaker default"] = verifiedReadback.SystemPlaybackDefaultChanged,
+            ["Readback confirms all three roles"] = verifiedReadback.RoleResults.All(role => role.Succeeded),
+            ["Readback rejects missing Multimedia role"] = !missingMultimedia.SystemPlaybackDefaultChanged,
+            ["Console role enum is 0"] = (int)AudioEndpointRole.Console == 0,
+            ["Multimedia role enum is 1"] = (int)AudioEndpointRole.Multimedia == 1,
+            ["Communications role enum is 2"] = (int)AudioEndpointRole.Communications == 2
+        };
+
+        var failedChecks = checks
+            .Where(check => !check.Value)
+            .Select(check => check.Key)
+            .ToArray();
+
+        if (failedChecks.Length > 0)
+        {
+            throw new InvalidOperationException(
+                "Default speaker routing self-test failed: " +
+                string.Join("; ", failedChecks));
         }
     }
 
