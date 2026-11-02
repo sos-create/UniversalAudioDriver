@@ -187,11 +187,12 @@ public sealed class SignedDriverPackageInstaller
 
     public static void RunSelfTests()
     {
-        const string inf = "[Models]\r\n%Device%=Install, HDAUDIO\\FUNC_01&VEN_10EC&DEV_0256\r\n";
+        const string inf = "[Models]\r\n%Codec%=Install, HDAUDIO\\FUNC_01&VEN_10EC&DEV_0256\r\n%Bus%=Install, PCI\\VEN_8086&DEV_9D70\r\n";
         if (!InfContainsHardwareId(inf, @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256") ||
+            !InfContainsHardwareId(inf, @"PCI\VEN_8086&DEV_9D70") ||
             InfContainsHardwareId(inf, @"HDAUDIO\FUNC_01&VEN_10EC"))
         {
-            throw new InvalidOperationException("Exact INF hardware ID matcher self-test failed.");
+            throw new InvalidOperationException("Exact codec and parent-controller INF hardware ID matcher self-test failed.");
         }
     }
 
