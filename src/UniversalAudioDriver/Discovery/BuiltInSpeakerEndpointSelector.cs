@@ -3,8 +3,8 @@ using UniversalAudioDriver.Models;
 namespace UniversalAudioDriver.Discovery;
 
 /// <summary>
-/// Conservative endpoint classifier. It deliberately requires a speaker/internal
-/// speaker name and rejects clearly external transports.
+/// Conservative endpoint classifier. It prefers the native Windows speaker
+/// form factor and falls back to localized endpoint names when that property is absent.
 /// </summary>
 public static class BuiltInSpeakerEndpointSelector
 {
@@ -14,7 +14,7 @@ public static class BuiltInSpeakerEndpointSelector
         "HEADPHONE", "HEADSET", "DOCK", "WIRELESS",
         "НАУШНИК", "ГАРНИТУР", "БЕСПРОВОД", "ДОК-СТАНЦИЯ",
         "KOPFHÖRER", "KOPFHORER", "HEADPHONES", "HAUT-PARLEUR",
-        "ÉCOUTEURS", "ECOUTEURS"
+        "ÉCOUTEURS", "ECOUTEURS", "CASQUE"
     };
 
     public static AudioEndpointInfo? Select(IEnumerable<AudioEndpointInfo> endpoints)
@@ -71,13 +71,16 @@ public static class BuiltInSpeakerEndpointSelector
             "Not default", false, false, 50, "Speakers");
         var germanBuiltIn = new AudioEndpointInfo(
             "Lautsprecher (Realtek(R) Audio)", "endpoint-german-speakers", "Active",
-            "Not default", false, false, 50);
+            "Not default", false, false, 50, "Speakers");
+        var genericBuiltIn = new AudioEndpointInfo(
+            "Realtek Audio", "endpoint-generic", "Active",
+            "Not default", false, false, 50, "Speakers");
         var hdmi = new AudioEndpointInfo(
             "Speakers (NVIDIA High Definition Audio HDMI)", "endpoint-hdmi",
             "Active", "Not default", false, false, 50, "HDMI");
         var headphones = new AudioEndpointInfo(
             "Headphones (Realtek Audio)", "endpoint-headphones",
-            "Active", "Not default", false, false, 50);
+            "Active", "Not default", false, false, 50, "Headphones");
         var disabled = new AudioEndpointInfo(
             "Speakers (Cirrus Audio)", "endpoint-disabled",
             "Disabled", "Not default", false, false, 50, "Speakers");
@@ -85,6 +88,7 @@ public static class BuiltInSpeakerEndpointSelector
         if (!IsLikelyBuiltInSpeaker(builtIn) ||
             !IsLikelyBuiltInSpeaker(russianBuiltIn) ||
             !IsLikelyBuiltInSpeaker(germanBuiltIn) ||
+            !IsLikelyBuiltInSpeaker(genericBuiltIn) ||
             IsLikelyBuiltInSpeaker(hdmi) ||
             IsLikelyBuiltInSpeaker(headphones) ||
             IsLikelyBuiltInSpeaker(disabled) ||
