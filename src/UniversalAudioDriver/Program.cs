@@ -46,7 +46,7 @@ internal static class Program
 
                 Console.WriteLine("UniversalAudioDriver installation-time detection and configuration");
                 Console.WriteLine($"Local signed driver package directory: {Path.GetFullPath(driverDirectory)}");
-                Console.WriteLine("Only INF packages containing exact detected hardware IDs will be offered to Windows.");
+                Console.WriteLine("Only INF packages with exact hardware, compatible or parent-controller ID matches will be offered to Windows.");
                 Console.WriteLine("Windows will enforce package signatures and driver ranking; no forced installation is used.");
                 Console.WriteLine();
 
@@ -81,14 +81,14 @@ internal static class Program
                 Console.WriteLine(installReport.NextStep);
                 Console.WriteLine($"Detailed report: {Path.GetFullPath(reportPath)}");
 
-                return installReport.SpeakerTest.TonePlayed &&
-                       installReport.DefaultPlaybackEndpoint?.SystemPlaybackDefaultChanged == true
-                    ? 0
-                    : installReport.SpeakerTest.TonePlayed
-                        ? 5
-                        : installReport.SpeakerTest.EndpointFound
-                            ? 3
-                            : installReport.WindowsUpdateDrivers.RebootRequired ? 4 : 2;
+                return installReport.WindowsUpdateDrivers.RebootRequired
+                    ? 4
+                    : installReport.SpeakerTest.TonePlayed &&
+                      installReport.DefaultPlaybackEndpoint?.SystemPlaybackDefaultChanged == true
+                        ? 0
+                        : installReport.SpeakerTest.TonePlayed
+                            ? 5
+                            : installReport.SpeakerTest.EndpointFound ? 3 : 2;
             }
 
             if (args.Any(a => string.Equals(a, "--rescan-pnp", StringComparison.OrdinalIgnoreCase)))
