@@ -54,6 +54,14 @@ internal static class Program
                 return 0;
             }
 
+            var systemInfo = new WindowsSystemDiscovery().Scan();
+            Console.WriteLine($"Computer: {systemInfo.Manufacturer} {systemInfo.Model}");
+            Console.WriteLine($"System type: {systemInfo.SystemType}");
+            Console.WriteLine($"Processor: {systemInfo.Processor}");
+            Console.WriteLine($"BIOS: {systemInfo.BiosVersion}");
+            Console.WriteLine($"Windows: {systemInfo.WindowsVersion} (build {systemInfo.WindowsBuild})");
+            Console.WriteLine();
+
             var discovery = new WindowsAudioDiscovery();
             var devices = discovery.Scan();
             var services = discovery.ScanServices();
@@ -102,7 +110,7 @@ internal static class Program
             Console.WriteLine();
 
             var output = args.FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal)) ?? "audio-discovery.json";
-            var snapshot = new { Devices = assessments, PlaybackEndpoints = endpoints, Services = services };
+            var snapshot = new { System = systemInfo, Devices = assessments, PlaybackEndpoints = endpoints, Services = services };
             var json = JsonSerializer.Serialize(snapshot,
                 new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(output, json);
