@@ -7,4 +7,5 @@ public sealed record AudioEndpointInfo(
     string Role,
     bool IsDefault,
     bool? IsMuted,
-    float? MasterVolumePercent);
+    float? MasterVolumePercent,
+    string FormFactor);
