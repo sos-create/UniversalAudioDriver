@@ -9,6 +9,17 @@
 4. Approve the Windows UAC prompt.
 5. Read audio-install-report.json after setup.
 
+The installer copies the utility to `%ProgramFiles%\\UniversalAudioDriver`
+and keeps its local signed OEM driver packages and diagnostic report under
+`%ProgramData%\\UniversalAudioDriver`. It does not copy SYS/INF files directly
+into arbitrary Windows folders. Matching packages are passed to Windows
+`pnputil /add-driver ... /install`, which stages packages in the protected
+Windows Driver Store (normally
+`%SystemRoot%\\System32\\DriverStore\\FileRepository`) and lets Plug and Play
+bind the best applicable signed driver to the hardware. Windows loads a bound
+kernel driver through its normal PnP/service mechanism; the recovery utility
+does not need to stay running in the background.
+
 The setup detects the laptop platform and audio PnP devices, starts the standard
 Windows audio services when possible, rescans devices, and checks for an active
 built-in speaker endpoint. It stages local, exact-ID matching INF packages through Windows PnPUtil in
