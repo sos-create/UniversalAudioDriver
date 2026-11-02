@@ -81,6 +81,29 @@ public sealed class WindowsDefaultAudioEndpointManager
         }
     }
 
+    public static void RunSelfTests()
+    {
+        var fullSuccess = new DefaultAudioEndpointConfigurationResult(
+            true, "Speakers", "test-id",
+            true, true, true, "ok", Array.Empty<AudioEndpointRoleChange>());
+        var communicationsFailure = new DefaultAudioEndpointConfigurationResult(
+            true, "Speakers", "test-id",
+            true, true, false, "partial", Array.Empty<AudioEndpointRoleChange>());
+        var multimediaFailure = new DefaultAudioEndpointConfigurationResult(
+            true, "Speakers", "test-id",
+            true, false, true, "failed", Array.Empty<AudioEndpointRoleChange>());
+
+        if (!fullSuccess.SystemPlaybackDefaultChanged ||
+            !communicationsFailure.SystemPlaybackDefaultChanged ||
+            multimediaFailure.SystemPlaybackDefaultChanged ||
+            (int)AudioEndpointRole.Console != 0 ||
+            (int)AudioEndpointRole.Multimedia != 1 ||
+            (int)AudioEndpointRole.Communications != 2)
+        {
+            throw new InvalidOperationException("Default speaker routing self-test failed.");
+        }
+    }
+
     private static AudioEndpointRoleChange SetRole(
         IPolicyConfig policy,
         string endpointId,
