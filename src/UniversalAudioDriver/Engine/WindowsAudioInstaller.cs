@@ -52,11 +52,19 @@ public sealed class WindowsAudioInstaller
         if (speakerEndpoint is null)
         {
             speakerTest = new SpeakerTestResult(
-                false, null, null, false,
+                false, null, null, null, null, false,
                 "Windows did not expose an active endpoint clearly identified as built-in speakers.");
         }
         else
         {
+            var endpointControllerId = speakerEndpoint.ControllerDeviceId;
+            var linkedPnpDevice = string.IsNullOrWhiteSpace(endpointControllerId)
+                ? null
+                : devices.FirstOrDefault(device =>
+                    string.Equals(device.DeviceId, endpointControllerId, StringComparison.OrdinalIgnoreCase))
+                  ?? devices.FirstOrDefault(device =>
+                    device.ParentDeviceIds.Contains(endpointControllerId, StringComparer.OrdinalIgnoreCase));
+
             defaultEndpointConfiguration = new WindowsDefaultAudioEndpointManager()
                 .SetBuiltInSpeakersAsDefault(speakerEndpoint);
 
@@ -68,13 +76,16 @@ public sealed class WindowsAudioInstaller
                     true,
                     playback.EndpointName,
                     playback.EndpointId,
+                    endpointControllerId,
+                    linkedPnpDevice?.Name,
                     true,
                     $"Low-volume test tone submitted via {playback.ShareMode} at {playback.SampleRate} Hz / {playback.Channels} channel(s).");
             }
             catch (Exception ex)
             {
                 speakerTest = new SpeakerTestResult(
-                    true, speakerEndpoint.Name, speakerEndpoint.Id, false,
+                    true, speakerEndpoint.Name, speakerEndpoint.Id,
+                    endpointControllerId, linkedPnpDevice?.Name, false,
                     $"Speaker endpoint exists, but the test tone failed: {ex.Message}");
             }
         }
