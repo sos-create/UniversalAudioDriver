@@ -125,6 +125,47 @@ internal static class Program
                 return 0;
             }
 
+            if (args.Any(a => string.Equals(a, "--test-speakers", StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine("Finding the laptop's built-in speakers...");
+                var endpoints = new CoreAudioEndpointDiscovery().ScanRenderEndpoints();
+                var speaker = BuiltInSpeakerEndpointSelector.Select(endpoints);
+                if (speaker is null)
+                {
+                    Console.Error.WriteLine("No active built-in speaker endpoint was found. Windows must expose the internal speakers through an installed controller/codec driver first.");
+                    return 2;
+                }
+
+                Console.WriteLine($"Built-in speakers: {speaker.Name}");
+                Console.WriteLine("Setting built-in speakers as the Windows Console and Multimedia output...");
+                var routing = new WindowsDefaultAudioEndpointManager()
+                    .SetBuiltInSpeakersAsDefault(speaker);
+                Console.WriteLine(routing.Status);
+                foreach (var role in routing.RoleResults)
+                    Console.WriteLine($"  {role.Role}: {role.Status}");
+
+                Console.WriteLine("Sending a short low-volume test sound directly to the built-in speaker endpoint...");
+                var playback = new AdaptiveAudioOutput().PlayTestToneOnEndpoint(
+                    speaker.Id, TimeSpan.FromSeconds(2));
+                Console.WriteLine($"Endpoint: {playback.EndpointName}");
+                Console.WriteLine($"Format: {playback.SampleRate} Hz, {playback.Channels} channel(s)");
+                Console.WriteLine($"Output: {playback.ShareMode}");
+                Console.WriteLine($"Volume preparation: {playback.OutputPreparation}");
+
+                for (var attempt = 0; attempt < 8; attempt++)
+                {
+                    endpoints = new CoreAudioEndpointDiscovery().ScanRenderEndpoints();
+                    routing = WindowsDefaultAudioEndpointManager.VerifyReadback(routing, endpoints);
+                    if (routing.SystemPlaybackDefaultChanged)
+                        break;
+                    Thread.Sleep(250);
+                }
+
+                Console.WriteLine($"Windows system-output verification: {routing.Status}");
+                Console.WriteLine("Windows accepted the test audio stream. This confirms software routing only; it cannot measure whether the physical speaker cones produced sound.");
+                return routing.SystemPlaybackDefaultChanged ? 0 : 5;
+            }
+
             if (args.Any(a => string.Equals(a, "--adaptive-test", StringComparison.OrdinalIgnoreCase)))
             {
                 Console.WriteLine("Selecting an active Windows playback endpoint and adapting to its shared-mode format...");
