@@ -56,7 +56,7 @@ public sealed class WindowsAudioServiceManager
                     }
 
                     var returnValue = Convert.ToUInt32(
-                        service.InvokeMethod("StartService", null) ?? uint.MaxValue);
+                        service.InvokeMethod("StartService", Array.Empty<object>()) ?? uint.MaxValue);
 
                     // Win32_Service.StartService: 0 = success, 10 = already running.
                     if (returnValue != 0 && returnValue != 10)
