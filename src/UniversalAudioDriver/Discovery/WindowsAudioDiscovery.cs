@@ -19,7 +19,10 @@ public sealed class WindowsAudioDiscovery
         "ALC", "RT56", "RT55", "RT101", "CS35", "CS42", "CS47",
         "CX807", "CX118", "WCD", "NAU88", "ES83", "ES85",
         "TAS25", "TAS27", "MAX983", "MAX98", "DA721",
-        "SYNAPTICS", "NUVOTON", "WOLFSON", "SMARTAMP"
+        "SYNAPTICS", "NUVOTON", "WOLFSON", "SMARTAMP",
+        "QCOM", "QUALCOMM", "WCD", "MTK", "MT635", "NXP",
+        "FREESCALE", "IMX", "SAI", "SOF", "SOUND OPEN FIRMWARE",
+        "TFA98", "TFA99"
     };
 
     private const string AudioFilter =
@@ -41,7 +44,14 @@ public sealed class WindowsAudioDiscovery
         "Name LIKE '%ESS Technology%' OR Name LIKE '%Analog Devices%' OR " +
         "Name LIKE '%IDT Audio%' OR Name LIKE '%Qualcomm%' OR Name LIKE '%MediaTek%' OR " +
         "Name LIKE '%AKM%' OR Name LIKE '%VIA HD%' OR Name LIKE '%C-Media%' OR " +
-        "Name LIKE '%NXP Audio%' OR DeviceID LIKE '%VEN_1013%' OR " +
+        "Name LIKE '%NXP Audio%' OR Name LIKE '%Qualcomm Audio%' OR " +
+        "Name LIKE '%WCD%' OR Name LIKE '%MT635%' OR Name LIKE '%MTK Audio%' OR " +
+        "Name LIKE '%TFA98%' OR Name LIKE '%TFA99%' OR " +
+        "Name LIKE '%Sound Open Firmware%' OR Name LIKE '%SOF DSP%' OR " +
+        "Name LIKE '%i.MX Audio%' OR Name LIKE '%SAI Audio%' OR " +
+        "DeviceID LIKE '%QCOM%' OR DeviceID LIKE '%VEN_MTK%' OR " +
+        "DeviceID LIKE '%VEN_NXP%' OR DeviceID LIKE '%VEN_FREESCALE%' OR " +
+        "DeviceID LIKE '%VEN_1013%' OR " +
         "DeviceID LIKE '%VEN_14F1%' OR DeviceID LIKE '%VEN_11D4%' OR " +
         "DeviceID LIKE '%VEN_111D%' OR DeviceID LIKE '%VEN_8384%' OR " +
         "DeviceID LIKE '%VEN_CIRR%' OR DeviceID LIKE '%VEN_RTK%' OR " +
