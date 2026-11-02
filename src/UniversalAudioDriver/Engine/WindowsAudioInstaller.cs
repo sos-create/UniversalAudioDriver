@@ -42,6 +42,7 @@ public sealed class WindowsAudioInstaller
         var assessments = new AudioCompatibilityEngine().Assess(devices);
         var speakerEndpoint = BuiltInSpeakerEndpointSelector.Select(endpoints);
 
+        DefaultAudioEndpointConfigurationResult? defaultEndpointConfiguration = null;
         SpeakerTestResult speakerTest;
         if (speakerEndpoint is null)
         {
@@ -51,6 +52,9 @@ public sealed class WindowsAudioInstaller
         }
         else
         {
+            defaultEndpointConfiguration = new WindowsDefaultAudioEndpointManager()
+                .SetBuiltInSpeakersAsDefault(speakerEndpoint);
+
             try
             {
                 var playback = new AdaptiveAudioOutput().PlayTestToneOnEndpoint(
@@ -70,25 +74,31 @@ public sealed class WindowsAudioInstaller
             }
         }
 
-        var status = speakerTest.TonePlayed
-            ? "Ready: Windows exposes an active built-in speaker endpoint and the test tone was played through the current Windows hardware driver stack."
-            : speakerTest.EndpointFound
-                ? "Partially configured: a built-in speaker endpoint exists, but test playback failed."
-                : windowsUpdateResult.RebootRequired
-                    ? "Restart required: Windows Update installed a matching audio driver and reports that Windows must restart before the device can be re-enumerated."
-                    : "Not ready: no active built-in speaker endpoint is exposed by the current Windows audio driver stack.";
+        var defaultPlaybackReady = defaultEndpointConfiguration?.SystemPlaybackDefaultChanged == true;
+        var status = speakerTest.TonePlayed && defaultPlaybackReady
+            ? "Ready: Windows accepted playback through the built-in speakers and they are now the system default output."
+            : speakerTest.TonePlayed
+                ? "Playback verified on the built-in speakers, but Windows did not confirm changing the system default output. Some apps may still use their existing/per-app route."
+                : speakerTest.EndpointFound
+                    ? "Partially configured: a built-in speaker endpoint exists, but test playback failed."
+                    : windowsUpdateResult.RebootRequired
+                        ? "Restart required: Windows Update installed a matching audio driver and reports that Windows must restart before the device can be re-enumerated."
+                        : "Not ready: no active built-in speaker endpoint is exposed by the current Windows audio driver stack.";
 
-        var nextStep = speakerTest.TonePlayed
-            ? "The installer has verified the existing Windows speaker path. It has not replaced the OEM kernel driver."
-            : windowsUpdateResult.RebootRequired
-                ? "Restart Windows, run the installer again, and check whether the built-in speaker endpoint now appears."
-                : "Check the report for PnP problem codes and missing platform dependencies. Add the laptop manufacturer's signed audio driver package to the Drivers folder and rerun the installer. A hardware-specific miniport/topology still has to exist for unsupported controllers/codecs.";
+        var nextStep = speakerTest.TonePlayed && defaultPlaybackReady
+            ? "The built-in speaker endpoint passed the playback test and Windows accepted it as the Console and Multimedia default. The OEM kernel driver has not been replaced."
+            : speakerTest.TonePlayed
+                ? "The built-in speaker endpoint played the test tone, but the Windows default-device change was not confirmed. Review DefaultPlaybackEndpoint role HRESULTs in the JSON report."
+                : windowsUpdateResult.RebootRequired
+                    ? "Restart Windows, run the installer again, and check whether the built-in speaker endpoint now appears."
+                    : "Check the report for PnP problem codes and missing platform dependencies. Add the laptop manufacturer's signed audio driver package to the Drivers folder and rerun the installer. A hardware-specific miniport/topology still has to exist for unsupported controllers/codecs.";
 
         return new AudioInstallationReport(
             system,
             devices.Count,
             assessments,
             endpoints,
+            defaultEndpointConfiguration,
             serviceResults,
             packageResults,
             windowsUpdateResult,
