@@ -96,7 +96,7 @@ public sealed class WindowsUpdateDriverInstaller
                 }
 
                 var matchedDevices = targets
-                    .Where(target => target.Ids.Contains(hardwareId))
+                    .Where(target => MatchesExactHardwareId(target.Ids, hardwareId))
                     .Select(target => target.Device.DeviceId)
                     .ToArray();
 
@@ -242,6 +242,26 @@ public sealed class WindowsUpdateDriverInstaller
             Release(searchResultObject);
             Release(searcherObject);
             Release(sessionObject);
+        }
+    }
+
+    private static bool MatchesExactHardwareId(
+        IReadOnlySet<string> deviceIds,
+        string updateHardwareId) =>
+        !string.IsNullOrWhiteSpace(updateHardwareId) &&
+        deviceIds.Contains(updateHardwareId.Trim());
+
+    public static void RunSelfTests()
+    {
+        var ids = new HashSet<string>(
+            new[] { @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256", @"HDAUDIO\FUNC_01&VEN_10EC" },
+            StringComparer.OrdinalIgnoreCase);
+
+        if (!MatchesExactHardwareId(ids, @"hdaudio\func_01&ven_10ec&dev_0256") ||
+            !MatchesExactHardwareId(ids, @"HDAUDIO\FUNC_01&VEN_10EC") ||
+            MatchesExactHardwareId(ids, @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256&SUBSYS_12345678"))
+        {
+            throw new InvalidOperationException("Windows Update exact hardware ID matcher self-test failed.");
         }
     }
 
