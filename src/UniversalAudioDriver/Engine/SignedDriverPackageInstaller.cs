@@ -184,7 +184,7 @@ public sealed class SignedDriverPackageInstaller
 
     public static void RunSelfTests()
     {
-        const string inf = "[Models]\\n%Device%=Install, HDAUDIO\\FUNC_01&VEN_10EC&DEV_0256\\n";
+        const string inf = "[Models]\r\n%Device%=Install, HDAUDIO\\FUNC_01&VEN_10EC&DEV_0256\r\n";
         if (!InfContainsHardwareId(inf, @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256") ||
             InfContainsHardwareId(inf, @"HDAUDIO\FUNC_01&VEN_10EC"))
         {
