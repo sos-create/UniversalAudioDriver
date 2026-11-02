@@ -20,6 +20,25 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Validate installer PowerShell syntax and guarded paths
+        shell: pwsh
+        run: |
+          $script = (Resolve-Path "installer/Install-UniversalAudioDriver.ps1").Path
+          $tokens = $null
+          $parseErrors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile($script, [ref]$tokens, [ref]$parseErrors) | Out-Null
+          if ($parseErrors.Count -gt 0) {
+            $parseErrors | ForEach-Object { Write-Error $_.Message }
+            throw "Installer PowerShell syntax validation failed."
+          }
+          $source = Get-Content $script -Raw
+          if ($source -notmatch 'IsNullOrWhiteSpace\(\$DriverDirectory\)' -or
+              $source -notmatch 'IsNullOrWhiteSpace\(\$ReportPath\)' -or
+              $source -notmatch 'Join-Path -Path \$ScriptDirectory') {
+            throw "Installer path guards are missing."
+          }
+          Write-Host "Installer syntax and empty-path guards validated."
+
       - name: Publish self-contained single-file executable
         run: >-
           dotnet publish src/UniversalAudioDriver/UniversalAudioDriver.csproj
