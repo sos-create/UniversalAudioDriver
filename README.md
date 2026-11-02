@@ -56,35 +56,50 @@ This is not yet a custom kernel-mode audio driver. It does not replace Intel SST
 
 ## Installation-time detection and preparation
 
-The published installer bundle contains Install-UniversalAudioDriver.ps1. Run it
-from the extracted bundle; it requests administrator permission and then:
+The published Windows bundle includes a one-click launcher,
+`Install-UniversalAudioDriver.cmd`. Double-click it and approve the Windows UAC
+prompt. The setup then:
 
-1. Reads the computer model, BIOS, processor and audio PnP hardware IDs.
-2. Scans the local Drivers folder for INF packages containing exact device IDs.
-3. Offers only those packages to Windows PnPUtil using /add-driver /install.
-4. Lets Windows enforce catalog signature checks and driver ranking; it never
-   uses /force or disables driver-signature enforcement.
-5. Requests a standard PnP rescan and starts AudioEndpointBuilder/Audiosrv if
-   they are stopped and not disabled.
-6. Searches for an active render endpoint clearly named as built-in speakers and
-   submits a brief low-volume test tone to that endpoint.
-7. Writes audio-install-report.json beside the executable.
+1. Reads the computer model, processor, BIOS, Windows version and audio PnP
+   devices, including hardware IDs, compatible IDs and parent controller IDs.
+2. Scans the local `Drivers` folder for INF packages containing exact matching
+   identifiers. Matching packages are submitted to Windows with PnPUtil.
+3. Re-scans devices that still report a PnP problem and queries Windows Update
+   Agent for driver updates whose declared `DriverHardwareID` exactly matches
+   one of those hardware, compatible or parent IDs. Updates requiring an
+   unaccepted EULA are skipped.
+4. Lets Windows enforce package signatures and driver ranking. The installer
+   never uses `/force`, disables driver-signature enforcement, or disables
+   Secure Boot.
+5. Requests a PnP rescan and starts the standard Windows audio services when
+   possible.
+6. Uses the native Windows endpoint form-factor property, with localized-name
+   fallback, to identify built-in speakers. It attempts to set the speakers as
+   the Console, Multimedia and Communications default output, then submits a
+   short low-volume test tone directly to that endpoint.
+7. Writes `audio-install-report.json` with system information, all device IDs,
+   parent-controller IDs, detected backend profile, matching local/WU packages,
+   service state, default-output HRESULTs and the speaker playback result.
 
-To add a laptop manufacturer's package, place its complete signed audio driver
-package in the Drivers folder and run the installer again. The INF must identify
-one of the detected hardware or compatible IDs. Windows can still reject a
-package or decide that another driver has a better rank. If Windows Update
-installs a matching driver and requires a restart, the installer reports that
-state; restart and run it again to verify the built-in speaker endpoint. The
-installer also makes a best-effort attempt to set the detected speakers as the
-system default using Windows' undocumented IPolicyConfig COM interface. The
-per-role HRESULT is recorded in the report; per-application routing may still
-override the default.
+The default-output change uses Windows' undocumented `IPolicyConfig` COM
+interface because the public Core Audio MMDevice API does not expose a default
+endpoint setter. This is best-effort: Windows can reject the operation, and
+per-application routing preferences can still override the system default.
+The report records the HRESULT for each audio role.
 
-This installer can configure and verify an already supported Windows speaker
-path. It cannot synthesize a missing Intel SST/AMD ACP/HDA/SoundWire kernel
-miniport, codec driver, DSP firmware, amplifier driver or OEM ACPI topology from
-generic blocks. Those pieces must exist for the exact hardware. A successful
-software test tone is evidence that Windows accepted playback on the selected
-endpoint, not a complete hardware qualification of every speaker, jack,
-microphone, sleep/resume and power-state path.
+To add a laptop manufacturer's driver package, place its complete signed audio
+package in the `Drivers` folder and run setup again. Keep the INF, catalog,
+SYS, firmware and companion files together. Windows can still reject a package
+or decide that another driver has a better rank. When Windows Update reports
+that a matching driver requires a restart, the installer returns a restart
+status; restart Windows and run it again to verify the speaker endpoint.
+
+This installation utility can configure and verify an already supported
+Windows speaker path, and can retrieve matching OEM/Windows Update packages.
+It cannot synthesize a missing Intel SST/AMD ACP/HDA/SoundWire kernel miniport,
+codec driver, DSP firmware, amplifier driver or OEM ACPI topology from generic
+blocks. Those components must exist for the exact hardware, or be implemented
+as a hardware-specific driver module and validated on the actual laptop. A
+successful test tone confirms that Windows accepted playback on the selected
+endpoint; it does not qualify every speaker, jack, microphone, sleep/resume or
+power-state path.
