@@ -19,6 +19,8 @@ public sealed record CompatibilityAssessment(
     IReadOnlyList<string> HardwareIds,
     IReadOnlyList<string> CompatibleIds,
     IReadOnlyList<string> ParentDeviceIds,
+    IReadOnlyList<string> ParentHardwareIds,
+    IReadOnlyList<string> ParentCompatibleIds,
     AudioHardwareProfile HardwareProfile,
     IReadOnlyList<string> NextChecks);
 
@@ -76,7 +78,8 @@ public sealed class AudioCompatibilityEngine
                 device.Service, device.DriverProvider, device.DriverVersion,
                 device.InfName, device.Status, device.ProblemCode,
                 device.HardwareIds, device.CompatibleIds,
-                device.ParentDeviceIds, profile, checks);
+                device.ParentDeviceIds, device.ParentHardwareIds,
+                device.ParentCompatibleIds, profile, checks);
         }).ToArray();
     }
 }
