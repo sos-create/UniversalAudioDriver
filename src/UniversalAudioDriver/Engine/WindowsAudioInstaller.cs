@@ -78,22 +78,24 @@ public sealed class WindowsAudioInstaller
             endpoints = new CoreAudioEndpointDiscovery().ScanRenderEndpoints();
 
         var defaultPlaybackReady = defaultEndpointConfiguration?.SystemPlaybackDefaultChanged == true;
-        var status = speakerTest.TonePlayed && defaultPlaybackReady
-            ? "Ready: Windows accepted playback through the built-in speakers and they are now the system default output."
-            : speakerTest.TonePlayed
-                ? "Playback verified on the built-in speakers, but Windows did not confirm changing the system default output. Some apps may still use their existing/per-app route."
-                : windowsUpdateResult.RebootRequired
-                    ? "Restart required: Windows Update installed a matching audio driver and reports that Windows must restart before the device can be re-enumerated."
+        var status = windowsUpdateResult.RebootRequired
+            ? speakerTest.TonePlayed && defaultPlaybackReady
+                ? "Restart required: the built-in speakers currently pass the playback test and Windows accepted them as default, but Windows Update requires a restart to finalize the new driver."
+                : "Restart required: Windows Update installed a matching audio driver and reports that Windows must restart before the device can be fully re-enumerated."
+            : speakerTest.TonePlayed && defaultPlaybackReady
+                ? "Ready: Windows accepted playback through the built-in speakers and they are now the system default output."
+                : speakerTest.TonePlayed
+                    ? "Playback verified on the built-in speakers, but Windows did not confirm changing the system default output. Some apps may still use their existing/per-app route."
                     : speakerTest.EndpointFound
                         ? "Partially configured: a built-in speaker endpoint exists, but test playback failed."
                         : "Not ready: no active built-in speaker endpoint is exposed by the current Windows audio driver stack.";
 
-        var nextStep = speakerTest.TonePlayed && defaultPlaybackReady
-            ? "The built-in speaker endpoint passed the playback test and Windows accepted it as the Console and Multimedia default. The OEM kernel driver has not been replaced."
-            : speakerTest.TonePlayed
-                ? "The built-in speaker endpoint played the test tone, but the Windows default-device change was not confirmed. Review DefaultPlaybackEndpoint role HRESULTs in the JSON report."
-                : windowsUpdateResult.RebootRequired
-                    ? "Restart Windows, run the installer again, and check whether the built-in speaker endpoint now appears."
+        var nextStep = windowsUpdateResult.RebootRequired
+            ? "Restart Windows, run the installer again, and verify that the matching driver has completed installation and the built-in speakers are the system default output."
+            : speakerTest.TonePlayed && defaultPlaybackReady
+                ? "The built-in speaker endpoint passed the playback test and Windows accepted it as the Console and Multimedia default. The OEM kernel driver has not been replaced."
+                : speakerTest.TonePlayed
+                    ? "The built-in speaker endpoint played the test tone, but the Windows default-device change was not confirmed. Review DefaultPlaybackEndpoint role HRESULTs in the JSON report."
                     : "Check the report for PnP problem codes and missing platform dependencies. Add the laptop manufacturer's signed audio driver package to the Drivers folder and rerun the installer. A hardware-specific miniport/topology still has to exist for unsupported controllers/codecs.";
 
         return new AudioInstallationReport(
