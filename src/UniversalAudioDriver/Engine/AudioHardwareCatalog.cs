@@ -62,7 +62,6 @@ public static class AudioHardwareCatalog
 
     private static readonly (string Marker, string Name)[] Codecs =
     {
-        ("ALC", "Realtek ALC series"),
         ("RT568", "Realtek RT56xx"),
         ("RT567", "Realtek RT56xx"),
         ("RT551", "Realtek RT55xx"),
@@ -123,10 +122,42 @@ public static class AudioHardwareCatalog
     {
         ArgumentNullException.ThrowIfNull(signature);
         var value = signature.ToUpperInvariant();
+        if (ContainsRealtekAlcModel(value))
+            return "Realtek ALC series";
+
         foreach (var (marker, name) in Codecs)
             if (value.Contains(marker, StringComparison.OrdinalIgnoreCase))
                 return name;
         return "Codec model not identified";
+    }
+
+    private static bool ContainsRealtekAlcModel(string value)
+    {
+        var searchFrom = 0;
+        while (searchFrom < value.Length)
+        {
+            var index = value.IndexOf("ALC", searchFrom, StringComparison.Ordinal);
+            if (index < 0)
+                return false;
+
+            var cursor = index + 3;
+            while (cursor < value.Length && char.IsWhiteSpace(value[cursor]))
+                cursor++;
+
+            var digits = 0;
+            while (cursor < value.Length && char.IsDigit(value[cursor]))
+            {
+                digits++;
+                cursor++;
+            }
+
+            if (digits >= 3)
+                return true;
+
+            searchFrom = index + 3;
+        }
+
+        return false;
     }
 
     public static string DetectComponentRole(string signature, string? pnpClass)
@@ -176,6 +207,7 @@ public static class AudioHardwareCatalog
         AssertVendor(@"HDAUDIO\FUNC_01&VEN_125D", "ESS Technology");
 
         AssertCodec("Realtek ALC295", "Realtek ALC series");
+        AssertCodec(@"HDAUDIO\\FUNC_01&VEN_10EC&DEV_0256 ALC 256", "Realtek ALC series");
         AssertCodec("RT5682", "Realtek RT56xx");
         AssertCodec("RT5640", "Realtek RT56xx");
         AssertCodec("RT5651", "Realtek RT56xx");
