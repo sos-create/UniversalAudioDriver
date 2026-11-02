@@ -31,10 +31,27 @@ jobs:
           -p:EnableCompressionInSingleFile=true
           --output ./artifacts/UniversalAudioDriver-${{ matrix.runtime }}
 
+      - name: Assemble installation bundle
+        shell: pwsh
+        run: |
+          $publishDir = "./artifacts/UniversalAudioDriver-${{ matrix.runtime }}"
+          Copy-Item "installer/Install-UniversalAudioDriver.ps1" $publishDir
+          Copy-Item "installer/README.md" "$publishDir/INSTALLATION-README.md"
+          Copy-Item "Drivers" $publishDir -Recurse
+          Compress-Archive -Path "$publishDir/*" -DestinationPath "./artifacts/UniversalAudioDriver-${{ matrix.runtime }}-installer.zip" -Force
+
       - name: Upload standalone application
         uses: actions/upload-artifact@v4
         with:
           name: UniversalAudioDriver-${{ matrix.runtime }}
           path: ./artifacts/UniversalAudioDriver-${{ matrix.runtime }}/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload Windows installation bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: UniversalAudioDriver-installer-${{ matrix.runtime }}
+          path: ./artifacts/UniversalAudioDriver-${{ matrix.runtime }}-installer.zip
           if-no-files-found: error
           retention-days: 30
