@@ -138,6 +138,13 @@ public static class AudioHardwareProfilePlanner
             CreateTestDevice(@"INTELAUDIO\FUNC_01&VEN_10EC", Array.Empty<string>()),
             "Intel Smart Sound Technology (SST)");
         AssertArchitecture(
+            CreateTestDevice(
+                @"HDAUDIO\FUNC_01&VEN_10EC",
+                new[] { @"PCI\VEN_8086&DEV_9D70" },
+                new[] { @"INTELAUDIO\FUNC_01&VEN_10EC" },
+                Array.Empty<string>()),
+            "Intel Smart Sound Technology (SST)");
+        AssertArchitecture(
             CreateTestDevice(@"PCI\VEN_1022&DEV_15E3", new[] { "AMD Audio CoProcessor (ACP)" }),
             "AMD Audio CoProcessor (ACP)");
         AssertArchitecture(
@@ -154,11 +161,20 @@ public static class AudioHardwareProfilePlanner
             "USB Audio Class");
     }
 
-    private static AudioDeviceInfo CreateTestDevice(string deviceId, IReadOnlyList<string> parents) =>
+    private static AudioDeviceInfo CreateTestDevice(
+        string deviceId,
+        IReadOnlyList<string> parents) =>
+        CreateTestDevice(deviceId, parents, Array.Empty<string>(), Array.Empty<string>());
+
+    private static AudioDeviceInfo CreateTestDevice(
+        string deviceId,
+        IReadOnlyList<string> parents,
+        IReadOnlyList<string> parentHardwareIds,
+        IReadOnlyList<string> parentCompatibleIds) =>
         new(
             "Synthetic test device", deviceId, null, "MEDIA", null, null, null, null,
             "OK", 0, "Test family", new[] { deviceId }, Array.Empty<string>(),
-            parents, Array.Empty<string>(), Array.Empty<string>());
+            parents, parentHardwareIds, parentCompatibleIds);
 
     private static void AssertArchitecture(AudioDeviceInfo device, string expected)
     {
