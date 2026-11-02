@@ -81,8 +81,93 @@ public sealed class WindowsDefaultAudioEndpointManager
         }
     }
 
+    public static DefaultAudioEndpointConfigurationResult VerifyReadback(
+        DefaultAudioEndpointConfigurationResult result,
+        IEnumerable<AudioEndpointInfo> endpoints)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(endpoints);
+
+        if (!result.Attempted)
+            return result;
+
+        var selected = endpoints.FirstOrDefault(endpoint =>
+            string.Equals(endpoint.Id, result.EndpointId, StringComparison.OrdinalIgnoreCase));
+
+        var console = HasRole(selected, "Console");
+        var multimedia = HasRole(selected, "Multimedia");
+        var communications = HasRole(selected, "Communications");
+
+        var roles = new[] { "Console", "Multimedia", "Communications" };
+        var updatedResults = roles.Select(role =>
+        {
+            var verified = role switch
+            {
+                "Console" => console,
+                "Multimedia" => multimedia,
+                _ => communications
+            };
+
+            var previous = result.RoleResults.FirstOrDefault(item =>
+                string.Equals(item.Role, role, StringComparison.OrdinalIgnoreCase));
+            var hresult = previous?.HResult ?? unchecked((int)0x80004005);
+            var status = verified
+                ? "Verified: Windows reports this speaker endpoint as the default for this role."
+                : selected is null
+                    ? "Not verified: the selected speaker endpoint was not returned by Core Audio after the change."
+                    : "Not verified: Core Audio does not report this speaker endpoint as the default for this role.";
+
+            return new AudioEndpointRoleChange(role, hresult, verified, status);
+        }).ToArray();
+
+        var summary = console && multimedia
+            ? communications
+                ? "Core Audio readback confirms built-in speakers are default for Console, Multimedia and Communications."
+                : "Core Audio readback confirms built-in speakers are default for Console and Multimedia; Communications remains unchanged."
+            : "Core Audio readback did not confirm built-in speakers as both Console and Multimedia default output.";
+
+        return result with
+        {
+            ConsoleChanged = console,
+            MultimediaChanged = multimedia,
+            CommunicationsChanged = communications,
+            Status = summary,
+            RoleResults = updatedResults
+        };
+    }
+
+    private static bool HasRole(AudioEndpointInfo? endpoint, string role)
+    {
+        if (endpoint is null)
+            return false;
+
+        return endpoint.Role
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Contains(role, StringComparer.OrdinalIgnoreCase);
+    }
+
     public static void RunSelfTests()
     {
+        var readbackBase = new DefaultAudioEndpointConfigurationResult(
+            true, "Speakers", "readback-id",
+            false, false, false, "not yet confirmed",
+            Array.Empty<AudioEndpointRoleChange>());
+        var readbackEndpoints = new[]
+        {
+            new AudioEndpointInfo(
+                "Speakers (Realtek Audio)", "readback-id", "Active",
+                "Console, Multimedia", true, false, 50, "Speakers", null)
+        };
+        var verifiedReadback = VerifyReadback(readbackBase, readbackEndpoints);
+        var missingMultimedia = VerifyReadback(
+            readbackBase,
+            new[]
+            {
+                new AudioEndpointInfo(
+                    "Speakers (Realtek Audio)", "readback-id", "Active",
+                    "Console", true, false, 50, "Speakers", null)
+            });
+
         var fullSuccess = new DefaultAudioEndpointConfigurationResult(
             true, "Speakers", "test-id",
             true, true, true, "ok", Array.Empty<AudioEndpointRoleChange>());
@@ -96,6 +181,9 @@ public sealed class WindowsDefaultAudioEndpointManager
         if (!fullSuccess.SystemPlaybackDefaultChanged ||
             !communicationsFailure.SystemPlaybackDefaultChanged ||
             multimediaFailure.SystemPlaybackDefaultChanged ||
+            !verifiedReadback.SystemPlaybackDefaultChanged ||
+            !verifiedReadback.RoleResults.All(role => role.Succeeded) ||
+            missingMultimedia.SystemPlaybackDefaultChanged ||
             (int)AudioEndpointRole.Console != 0 ||
             (int)AudioEndpointRole.Multimedia != 1 ||
             (int)AudioEndpointRole.Communications != 2)
