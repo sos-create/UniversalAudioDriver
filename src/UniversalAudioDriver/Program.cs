@@ -67,7 +67,11 @@ internal static class Program
                 Console.WriteLine($"Final PnP rescan exit code: {installReport.PnpRescanExitCode}");
                 Console.WriteLine($"Windows Update drivers: {installReport.WindowsUpdateDrivers.Status}");
                 foreach (var update in installReport.WindowsUpdateDrivers.Packages)
+                {
                     Console.WriteLine($"WU: {update.Title} [{update.HardwareId}] - {update.Status}");
+                    foreach (var matchedDeviceId in update.MatchedDeviceIds)
+                        Console.WriteLine($"  Matched PnP device: {matchedDeviceId}");
+                }
                 if (installReport.WindowsUpdateDrivers.RebootRequired)
                     Console.WriteLine("Windows Update reports that a restart is required to finish driver installation.");
                 if (installReport.SpeakerTest.EndpointFound)
