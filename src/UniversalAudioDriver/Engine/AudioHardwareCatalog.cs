@@ -54,6 +54,9 @@ public static class AudioHardwareCatalog
         ("MEDIATEK", "MediaTek"),
         ("QUALCOMM", "Qualcomm"),
         ("NXP", "NXP"),
+        ("QCOM", "Qualcomm"),
+        ("MTK", "MediaTek"),
+        ("FREESCALE", "NXP / Freescale"),
         ("ESS TECHNOLOGY", "ESS Technology"),
         ("SIGMATEL", "SigmaTel"),
         ("C-MEDIA", "C-Media"),
@@ -78,6 +81,11 @@ public static class AudioHardwareCatalog
         ("CX207", "Conexant CX20xx codec"),
         ("CX20", "Conexant CX20xx codec"),
         ("WCD", "Qualcomm WCD codec"),
+        ("MT6359", "MediaTek MT6359 audio codec"),
+        ("MT6358", "MediaTek MT6358 audio codec"),
+        ("MT6360", "MediaTek MT6360 audio codec"),
+        ("TFA98", "NXP TFA98xx smart amplifier"),
+        ("TFA99", "NXP TFA99xx smart amplifier"),
         ("NAU88", "Nuvoton NAU88xx codec"),
         ("ES83", "Everest ES83xx codec"),
         ("ES85", "Everest ES85xx codec"),
@@ -97,15 +105,16 @@ public static class AudioHardwareCatalog
     {
         "SMARTAMP", "SMART AMP", "AMPLIFIER", "AMP ",
         "MAX983", "MAX98", "CS35", "TAS25", "TAS27",
-        "RT101", "DA739", "SMART AMP", "SMARTAMP"
+        "RT101", "DA739", "TFA98", "TFA99", "SMART AMP", "SMARTAMP"
     };
 
     private static readonly string[] DspMarkers =
     {
         "INTELAUDIO", "INTEL SMART SOUND", "SMART SOUND",
         "AMD ACP", "AUDIO COPROCESSOR", "VEN_1022&DEV_15E2",
-        "VEN_1022&DEV_15E3", "AMD AUDIO", "DSP", "SST",
-        "AUDIO PROCESSOR", "AUDIO DSP"
+        "VEN_1022&DEV_15E3", "AMD AUDIO", "QUALCOMM ADSP", "QCOM ADSP",
+        "MTK AUDIO DSP", "SOUND OPEN FIRMWARE", "SOF DSP",
+        "DSP", "SST", "AUDIO PROCESSOR", "AUDIO DSP"
     };
 
     public static string DetectVendor(string signature)
@@ -184,7 +193,8 @@ public static class AudioHardwareCatalog
             {
                 "HDAUDIO", "SOUNDWIRE", "SDCA", "SLIMBUS", "CODEC",
                 "I2S", "I2C", "ALC", "RT568", "RT567", "RT551", "CS42",
-                "CS47", "CX807", "CX118", "WCD", "NAU88", "ES83", "DA721"
+                "CS47", "CX807", "CX118", "WCD", "MT635", "NAU88", "ES83",
+                "DA721", "TFA98", "TFA99"
             }.Any(value.Contains))
             return "Audio codec / serial audio component";
 
@@ -226,6 +236,8 @@ public static class AudioHardwareCatalog
         AssertCodec("Conexant CX8070", "Conexant CX807x codec");
         AssertCodec("Conexant CX20751", "Conexant CX20xx codec");
         AssertCodec("Qualcomm WCD9385", "Qualcomm WCD codec");
+        AssertCodec("MediaTek MT6359", "MediaTek MT6359 audio codec");
+        AssertCodec("NXP TFA9874", "NXP TFA98xx smart amplifier");
         AssertCodec("Nuvoton NAU88L25", "Nuvoton NAU88xx codec");
         AssertCodec("Everest ES8316", "Everest ES83xx codec");
         AssertCodec("TI TAS2563", "Texas Instruments TAS25xx smart amplifier");
@@ -236,6 +248,7 @@ public static class AudioHardwareCatalog
         if (DetectComponentRole("TAS2563 smart amplifier", "MEDIA") != "Speaker amplifier / Smart Amp" ||
             DetectComponentRole("Intel SST DSP", "System") != "Audio controller / DSP" ||
             DetectComponentRole(@"PCI\VEN_1022&DEV_15E2", "System") != "Audio controller / DSP" ||
+            DetectComponentRole("NXP TFA9874 Smart Amplifier", "MEDIA") != "Speaker amplifier / Smart Amp" ||
             DetectComponentRole("Realtek ALC295 HDAUDIO", "MEDIA") != "Audio codec / serial audio component")
             throw new InvalidOperationException("Audio hardware component role catalog self-test failed.");
     }
