@@ -128,9 +128,9 @@ public sealed class WindowsAudioInstaller
         var nextStep = windowsUpdateResult.RebootRequired
             ? "Restart Windows, run the installer again, and verify that the matching driver has completed installation and the built-in speakers are the system default output."
             : speakerTest.ToneSubmitted && defaultPlaybackReady
-                ? "The built-in speaker endpoint passed the playback test and Windows accepted it as the Console and Multimedia default. The OEM kernel driver has not been replaced."
+                ? "The built-in speaker endpoint accepted a WASAPI test stream and Windows accepted it as the Console and Multimedia default. Acoustic output is not measured, and the OEM kernel driver has not been replaced."
                 : speakerTest.ToneSubmitted
-                    ? "The built-in speaker endpoint accepted a test stream, but the Windows default-device change was not confirmed. Review DefaultPlaybackEndpoint role HRESULTs in the JSON report."
+                    ? "The built-in speaker endpoint accepted a WASAPI test stream, but the Windows default-device change was not confirmed. Review DefaultPlaybackEndpoint role HRESULTs in the JSON report."
                     : "Check the report for PnP problem codes and missing platform dependencies. Add the laptop manufacturer's signed audio driver package to the Drivers folder and rerun the installer. A hardware-specific miniport/topology still has to exist for unsupported controllers/codecs.";
 
         return new AudioInstallationReport(
