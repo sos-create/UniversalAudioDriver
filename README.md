@@ -62,6 +62,10 @@ prompt. The setup then:
 
 1. Reads the computer model, processor, BIOS, Windows version and audio PnP
    devices, including hardware IDs, compatible IDs and parent controller IDs.
+   The component report distinguishes controller/DSP, codec, speaker amplifier
+   (for example CS35/MAX98/TAS/RT101 families) and audio software components.
+   It also includes audio-related parent controllers in the System PnP class
+   when they are part of an audio device's ancestry and report a driver problem.
 2. Scans the local `Drivers` folder for INF packages containing exact matching
    identifiers. Matching packages are submitted to Windows with PnPUtil.
 3. Re-scans devices that still report a PnP problem and queries Windows Update
