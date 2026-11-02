@@ -112,9 +112,18 @@ public static class AudioHardwareCatalog
     {
         ArgumentNullException.ThrowIfNull(signature);
         var value = signature.ToUpperInvariant();
-        foreach (var (marker, name) in Vendors)
+
+        // The child codec's displayed name is more specific than an upstream
+        // Intel/AMD controller or the laptop manufacturer's ACPI parent ID.
+        foreach (var (marker, name) in Vendors.Where(item => !item.Marker.StartsWith("VEN_", StringComparison.OrdinalIgnoreCase)))
             if (value.Contains(marker, StringComparison.OrdinalIgnoreCase))
                 return name;
+
+        // If no explicit model name is exposed, fall back to codec vendor IDs.
+        foreach (var (marker, name) in Vendors.Where(item => item.Marker.StartsWith("VEN_", StringComparison.OrdinalIgnoreCase)))
+            if (value.Contains(marker, StringComparison.OrdinalIgnoreCase))
+                return name;
+
         return "Unknown vendor";
     }
 
