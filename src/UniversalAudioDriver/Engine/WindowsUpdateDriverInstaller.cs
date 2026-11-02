@@ -274,7 +274,11 @@ public sealed class WindowsUpdateDriverInstaller
         if (!MatchesExactHardwareId(ids, @"hdaudio\func_01&ven_10ec&dev_0256") ||
             !MatchesExactHardwareId(ids, @"HDAUDIO\FUNC_01&VEN_10EC") ||
             !MatchesExactHardwareId(ids, @"PCI\VEN_8086&DEV_9D70") ||
-            MatchesExactHardwareId(ids, @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256&SUBSYS_12345678"))
+            MatchesExactHardwareId(ids, @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256&SUBSYS_12345678") ||
+            !IsEulaAccepted(null, false) ||
+            !IsEulaAccepted(string.Empty, false) ||
+            !IsEulaAccepted("License terms", true) ||
+            IsEulaAccepted("License terms", false))
         {
             throw new InvalidOperationException("Windows Update exact hardware ID or EULA selection self-test failed.");
         }
