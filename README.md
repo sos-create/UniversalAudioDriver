@@ -42,9 +42,10 @@ The build script sets `SignMode=Off` for compilation only. It does not produce a
 .\UniversalAudioDriver.exe
 .\UniversalAudioDriver.exe --rescan-pnp
 .\UniversalAudioDriver.exe --test-tone
+.\UniversalAudioDriver.exe --test-speakers
 ```
 
-The rescan command requests a normal Windows PnP rescan. The test-tone command intentionally plays a brief low-volume tone through the current default playback endpoint. `--adaptive-test` selects an active render endpoint (preferring the Windows default multimedia endpoint), reads its shared-mode mix format, and plays a low-volume test tone using that format.
+The rescan command requests a normal Windows PnP rescan. The test-tone command intentionally plays a brief low-volume tone through the current default playback endpoint. The `--test-speakers` command specifically locates the active built-in speaker endpoint, attempts to make it the Windows Console and Multimedia default, submits a low-volume WASAPI test stream directly to that endpoint, and verifies the default route by reading it back from Core Audio. `--adaptive-test` selects an active render endpoint (preferring the Windows default multimedia endpoint), reads its shared-mode mix format, and plays a low-volume test tone using that format.
 
 
 ## Adaptive output foundation (current implementation)
