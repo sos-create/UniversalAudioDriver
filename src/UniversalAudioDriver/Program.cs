@@ -6,6 +6,17 @@ namespace UniversalAudioDriver;
 
 internal static class Program
 {
+    private static string? GetOptionValue(string[] args, string option)
+    {
+        for (var index = 0; index < args.Length - 1; index++)
+        {
+            if (string.Equals(args[index], option, StringComparison.OrdinalIgnoreCase))
+                return args[index + 1];
+        }
+
+        return null;
+    }
+
     private static int Main(string[] args)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
@@ -18,8 +29,45 @@ internal static class Program
             if (args.Any(a => string.Equals(a, "--self-test", StringComparison.OrdinalIgnoreCase)))
             {
                 AudioHardwareProfilePlanner.RunSelfTests();
-                Console.WriteLine("Hardware profile planner self-tests passed.");
+                SignedDriverPackageInstaller.RunSelfTests();
+                BuiltInSpeakerEndpointSelector.RunSelfTests();
+                Console.WriteLine("Hardware profile, exact INF matching and speaker endpoint self-tests passed.");
                 return 0;
+            }
+
+            if (args.Any(a => string.Equals(a, "--install", StringComparison.OrdinalIgnoreCase)))
+            {
+                var driverDirectory = GetOptionValue(args, "--driver-dir")
+                    ?? Path.Combine(AppContext.BaseDirectory, "Drivers");
+                var reportPath = GetOptionValue(args, "--report")
+                    ?? Path.Combine(AppContext.BaseDirectory, "audio-install-report.json");
+
+                Console.WriteLine("UniversalAudioDriver installation-time detection and configuration");
+                Console.WriteLine($"Local signed driver package directory: {Path.GetFullPath(driverDirectory)}");
+                Console.WriteLine("Only INF packages containing exact detected hardware IDs will be offered to Windows.");
+                Console.WriteLine("Windows will enforce package signatures and driver ranking; no forced installation is used.");
+                Console.WriteLine();
+
+                var installReport = new WindowsAudioInstaller().Install(driverDirectory);
+                var reportJson = JsonSerializer.Serialize(installReport,
+                    new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(reportPath, reportJson);
+
+                Console.WriteLine($"Computer: {installReport.System.Manufacturer} {installReport.System.Model}");
+                Console.WriteLine(installReport.Status);
+                foreach (var service in installReport.Services)
+                    Console.WriteLine($"Service {service.ServiceName}: {service.StateBefore} -> {service.StateAfter} ({service.Result})");
+                foreach (var package in installReport.DriverPackages)
+                    Console.WriteLine($"INF {package.InfPath}: exit {package.ExitCode} ({package.Status})");
+                if (installReport.SpeakerTest.EndpointFound)
+                    Console.WriteLine($"Built-in speaker endpoint: {installReport.SpeakerTest.EndpointName}");
+                Console.WriteLine(installReport.SpeakerTest.Result);
+                Console.WriteLine(installReport.NextStep);
+                Console.WriteLine($"Detailed report: {Path.GetFullPath(reportPath)}");
+
+                return installReport.SpeakerTest.TonePlayed
+                    ? 0
+                    : installReport.SpeakerTest.EndpointFound ? 3 : 2;
             }
 
             if (args.Any(a => string.Equals(a, "--rescan-pnp", StringComparison.OrdinalIgnoreCase)))
