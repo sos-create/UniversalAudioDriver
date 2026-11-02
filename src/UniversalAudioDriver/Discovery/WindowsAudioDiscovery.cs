@@ -220,7 +220,8 @@ public sealed class WindowsAudioDiscovery
 
         var candidateParentIds = devices
             .SelectMany(device => device.ParentDeviceIds)
-            .Distinct(StringComparer.OrdinalIgnoreCase);
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
         foreach (var parentId in candidateParentIds)
         {
@@ -289,9 +290,9 @@ public sealed class WindowsAudioDiscovery
     private static bool LooksLikeAudioParent(string deviceId, PnpIdentifierSet device)
     {
         var signature = string.Join(" ",
-            deviceId,
-            device.Name,
-            device.HardwareIds.Concat(device.CompatibleIds))
+            new[] { deviceId, device.Name }
+                .Concat(device.HardwareIds)
+                .Concat(device.CompatibleIds))
             .ToUpperInvariant();
 
         return AudioParentMarkers.Any(signature.Contains);
