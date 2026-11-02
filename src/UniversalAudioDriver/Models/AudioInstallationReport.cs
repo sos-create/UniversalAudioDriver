@@ -19,6 +19,8 @@ public sealed record SpeakerTestResult(
     bool EndpointFound,
     string? EndpointName,
     string? EndpointId,
+    string? ControllerDeviceId,
+    string? MatchedPnpDeviceName,
     bool TonePlayed,
     string Result);
 
