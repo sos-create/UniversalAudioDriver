@@ -151,15 +151,16 @@ public static class AudioHardwareProfilePlanner
                 "Codec verbs, pin widgets, coefficients, jack mapping and speaker amplifier topology",
                 "HDA architecture and codec family identified; the matching OEM codec/topology package is preferred.");
 
-        if (AudioHardwareCatalog.IsKnownCodecOrAmplifier(signature))
+        if (signature.Contains("HDMI") || signature.Contains("DISPLAYPORT") ||
+            signature.Contains("DISPLAY AUDIO"))
             return Create(
-                $"{vendor} / {codecFamily}",
-                $"{vendor} codec or smart-amplifier miniport/topology",
-                "Medium",
-                $"{codecDependency} driver and firmware",
-                "Matching audio controller, transport bus and OEM endpoint topology",
-                "Laptop-specific ACPI resources, amplifier power sequence and speaker routing",
-                "Codec/amplifier family identified. Exact device and platform package matching is required.");
+                "HDMI / DisplayPort digital audio",
+                "Windows GPU display-audio driver stack",
+                "High",
+                "Matching Intel, AMD or NVIDIA graphics driver",
+                "Display link audio endpoint and supported monitor format",
+                "External monitor/TV audio route; not the laptop's built-in speaker codec",
+                "Digital display-audio path identified.");
 
         if (signature.Contains("USB"))
             return Create(
@@ -180,6 +181,16 @@ public static class AudioHardwareProfilePlanner
                 "Compatible A2DP/HFP profile",
                 "This profile does not establish a route to built-in laptop speakers",
                 "Bluetooth strategy identified; it is not a built-in-speaker driver.");
+
+        if (AudioHardwareCatalog.IsKnownCodecOrAmplifier(signature))
+            return Create(
+                $"{vendor} / {codecFamily}",
+                $"{vendor} codec or smart-amplifier miniport/topology",
+                "Medium",
+                $"{codecDependency} driver and firmware",
+                "Matching audio controller, transport bus and OEM endpoint topology",
+                "Laptop-specific ACPI resources, amplifier power sequence and speaker routing",
+                "Codec/amplifier family identified. Exact device and platform package matching is required.");
 
         return Create(
             "Unknown / platform-specific audio",
