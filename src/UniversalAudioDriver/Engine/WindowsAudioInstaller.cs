@@ -74,11 +74,15 @@ public sealed class WindowsAudioInstaller
             ? "Ready: Windows exposes an active built-in speaker endpoint and the test tone was played through the current Windows hardware driver stack."
             : speakerTest.EndpointFound
                 ? "Partially configured: a built-in speaker endpoint exists, but test playback failed."
-                : "Not ready: no active built-in speaker endpoint is exposed by the current Windows audio driver stack.";
+                : windowsUpdateResult.RebootRequired
+                    ? "Restart required: Windows Update installed a matching audio driver and reports that Windows must restart before the device can be re-enumerated."
+                    : "Not ready: no active built-in speaker endpoint is exposed by the current Windows audio driver stack.";
 
         var nextStep = speakerTest.TonePlayed
             ? "The installer has verified the existing Windows speaker path. It has not replaced the OEM kernel driver."
-            : "Check the report for PnP problem codes and missing platform dependencies. Add the laptop manufacturer's signed audio driver package to the Drivers folder and rerun the installer. A hardware-specific miniport/topology still has to exist for unsupported controllers/codecs.";
+            : windowsUpdateResult.RebootRequired
+                ? "Restart Windows, run the installer again, and check whether the built-in speaker endpoint now appears."
+                : "Check the report for PnP problem codes and missing platform dependencies. Add the laptop manufacturer's signed audio driver package to the Drivers folder and rerun the installer. A hardware-specific miniport/topology still has to exist for unsupported controllers/codecs.";
 
         return new AudioInstallationReport(
             system,
