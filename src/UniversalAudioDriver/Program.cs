@@ -60,7 +60,9 @@ internal static class Program
                     Console.WriteLine($"Service {service.ServiceName}: {service.StateBefore} -> {service.StateAfter} ({service.Result})");
                 foreach (var package in installReport.DriverPackages)
                     Console.WriteLine($"INF {package.InfPath}: exit {package.ExitCode} ({package.Status})");
-                Console.WriteLine($"PnP rescan exit code: {installReport.PnpRescanExitCode}");
+                if (installReport.LocalDriverPnpRescanExitCode is int localRescanCode)
+                    Console.WriteLine($"PnP rescan after local OEM package: {localRescanCode}");
+                Console.WriteLine($"Final PnP rescan exit code: {installReport.PnpRescanExitCode}");
                 Console.WriteLine($"Windows Update drivers: {installReport.WindowsUpdateDrivers.Status}");
                 foreach (var update in installReport.WindowsUpdateDrivers.Packages)
                     Console.WriteLine($"WU: {update.Title} [{update.HardwareId}] - {update.Status}");
