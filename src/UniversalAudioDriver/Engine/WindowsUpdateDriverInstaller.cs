@@ -84,8 +84,9 @@ public sealed class WindowsUpdateDriverInstaller
                     hardwareId = (Convert.ToString(update.DriverHardwareID) ?? string.Empty).Trim();
                     title = Convert.ToString(update.Title) ?? "Unnamed driver update";
                     provider = Convert.ToString(update.DriverProvider) ?? "Unknown provider";
-                    eulaAccepted = Convert.ToBoolean(update.EulaAccepted);
-                    eulaRequired = !eulaAccepted;
+                    var eulaText = Convert.ToString(update.EulaText) ?? string.Empty;
+                    eulaRequired = !string.IsNullOrWhiteSpace(eulaText);
+                    eulaAccepted = IsEulaAccepted(eulaText, Convert.ToBoolean(update.EulaAccepted));
                 }
                 catch
                 {
@@ -250,6 +251,9 @@ public sealed class WindowsUpdateDriverInstaller
         }
     }
 
+    private static bool IsEulaAccepted(string? eulaText, bool accepted) =>
+        string.IsNullOrWhiteSpace(eulaText) || accepted;
+
     private static bool MatchesExactHardwareId(
         IReadOnlySet<string> deviceIds,
         string updateHardwareId) =>
@@ -272,7 +276,7 @@ public sealed class WindowsUpdateDriverInstaller
             !MatchesExactHardwareId(ids, @"PCI\VEN_8086&DEV_9D70") ||
             MatchesExactHardwareId(ids, @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256&SUBSYS_12345678"))
         {
-            throw new InvalidOperationException("Windows Update exact device and parent-controller hardware ID matcher self-test failed.");
+            throw new InvalidOperationException("Windows Update exact hardware ID or EULA selection self-test failed.");
         }
     }
 
