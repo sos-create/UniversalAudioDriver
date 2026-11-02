@@ -14,4 +14,6 @@ public sealed record AudioDeviceInfo(
     string Family,
     IReadOnlyList<string> HardwareIds,
     IReadOnlyList<string> CompatibleIds,
-    IReadOnlyList<string> ParentDeviceIds);
+    IReadOnlyList<string> ParentDeviceIds,
+    IReadOnlyList<string> ParentHardwareIds,
+    IReadOnlyList<string> ParentCompatibleIds);
