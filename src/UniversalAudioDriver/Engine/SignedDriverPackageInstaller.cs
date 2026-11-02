@@ -72,6 +72,7 @@ public sealed class SignedDriverPackageInstaller
                 foreach (var device in targetDevices)
                 {
                     var exactIds = device.HardwareIds
+                        .Concat(device.CompatibleIds)
                         .Append(device.DeviceId)
                         .Where(id => !string.IsNullOrWhiteSpace(id))
                         .Distinct(StringComparer.OrdinalIgnoreCase);
