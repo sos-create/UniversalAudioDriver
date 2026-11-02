@@ -59,6 +59,11 @@ internal static class Program
                     Console.WriteLine($"Service {service.ServiceName}: {service.StateBefore} -> {service.StateAfter} ({service.Result})");
                 foreach (var package in installReport.DriverPackages)
                     Console.WriteLine($"INF {package.InfPath}: exit {package.ExitCode} ({package.Status})");
+                Console.WriteLine($"Windows Update drivers: {installReport.WindowsUpdateDrivers.Status}");
+                foreach (var update in installReport.WindowsUpdateDrivers.Packages)
+                    Console.WriteLine($"WU: {update.Title} [{update.HardwareId}] - {update.Status}");
+                if (installReport.WindowsUpdateDrivers.RebootRequired)
+                    Console.WriteLine("Windows Update reports that a restart is required to finish driver installation.");
                 if (installReport.SpeakerTest.EndpointFound)
                     Console.WriteLine($"Built-in speaker endpoint: {installReport.SpeakerTest.EndpointName}");
                 Console.WriteLine(installReport.SpeakerTest.Result);
