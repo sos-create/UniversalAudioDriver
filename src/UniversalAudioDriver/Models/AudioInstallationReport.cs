@@ -27,6 +27,7 @@ public sealed record AudioInstallationReport(
     int DetectedAudioDeviceCount,
     IReadOnlyList<CompatibilityAssessment> HardwareAssessments,
     IReadOnlyList<AudioEndpointInfo> PlaybackEndpoints,
+    DefaultAudioEndpointConfigurationResult? DefaultPlaybackEndpoint,
     IReadOnlyList<AudioServiceRecoveryResult> Services,
     IReadOnlyList<DriverPackageInstallResult> DriverPackages,
     WindowsUpdateDriverInstallResult WindowsUpdateDrivers,
