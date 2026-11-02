@@ -3,8 +3,9 @@
 1. Extract the complete ZIP.
 2. Keep UniversalAudioDriver.exe, Install-UniversalAudioDriver.ps1 and the
    Drivers folder together.
-3. Run the installer script from PowerShell:
-   powershell -ExecutionPolicy Bypass -File .\Install-UniversalAudioDriver.ps1
+3. Double-click Install-UniversalAudioDriver.cmd (or run the PowerShell script
+   directly with:
+   powershell -ExecutionPolicy Bypass -File .\Install-UniversalAudioDriver.ps1).
 4. Approve the Windows UAC prompt.
 5. Read audio-install-report.json after setup.
 
