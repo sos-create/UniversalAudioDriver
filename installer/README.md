@@ -1,0 +1,22 @@
+# UniversalAudioDriver installation bundle
+
+1. Extract the complete ZIP.
+2. Keep UniversalAudioDriver.exe, Install-UniversalAudioDriver.ps1 and the
+   Drivers folder together.
+3. Run the installer script from PowerShell:
+   powershell -ExecutionPolicy Bypass -File .\Install-UniversalAudioDriver.ps1
+4. Approve the Windows UAC prompt.
+5. Read audio-install-report.json after setup.
+
+The setup detects the laptop platform and audio PnP devices, starts the standard
+Windows audio services when possible, rescans devices, and checks for an active
+built-in speaker endpoint. It can stage local, exact-ID matching INF packages
+through Windows PnPUtil. Windows enforces package signature validation and driver
+ranking; no forced installation is performed.
+
+This bundle is not a universal kernel audio miniport. If no active built-in speaker
+endpoint is exposed, the report identifies hardware IDs and missing dependencies.
+A matching OEM controller/codec/amplifier driver or a hardware-specific miniport
+and topology implementation is still required. A short test tone confirms that
+Windows accepted audio playback on the selected endpoint; it does not prove every
+speaker, jack, microphone, power-state or sleep/resume path.
