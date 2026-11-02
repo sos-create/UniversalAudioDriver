@@ -36,6 +36,7 @@ jobs:
         run: |
           $publishDir = "./artifacts/UniversalAudioDriver-${{ matrix.runtime }}"
           Copy-Item "installer/Install-UniversalAudioDriver.ps1" $publishDir
+          Copy-Item "installer/Install-UniversalAudioDriver.cmd" $publishDir
           Copy-Item "installer/README.md" "$publishDir/INSTALLATION-README.md"
           Copy-Item "Drivers" $publishDir -Recurse
           Compress-Archive -Path "$publishDir/*" -DestinationPath "./artifacts/UniversalAudioDriver-${{ matrix.runtime }}-installer.zip" -Force
