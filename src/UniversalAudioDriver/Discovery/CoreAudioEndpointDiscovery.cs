@@ -41,6 +41,7 @@ public sealed class CoreAudioEndpointDiscovery
                 var roles = string.Join(", ", defaultIds
                     .Where(pair => string.Equals(pair.Value, device.ID, StringComparison.OrdinalIgnoreCase))
                     .Select(pair => pair.Key));
+                var formFactor = ReadFormFactor(device);
 
                 endpoints.Add(new AudioEndpointInfo(
                     device.FriendlyName,
@@ -49,11 +50,45 @@ public sealed class CoreAudioEndpointDiscovery
                     string.IsNullOrEmpty(roles) ? "Not default" : roles,
                     isDefault,
                     muted,
-                    volume));
+                    volume,
+                    formFactor));
             }
         }
 
         return endpoints.OrderByDescending(x => x.IsDefault).ThenBy(x => x.Name).ToArray();
+    }
+
+    private static string ReadFormFactor(MMDevice device)
+    {
+        try
+        {
+            var property = device.Properties[PropertyKeys.PKEY_AudioEndpoint_FormFactor];
+            var value = property?.Value;
+            if (value is null)
+                return "Unknown";
+
+            var formFactor = Convert.ToUInt32(value);
+            return formFactor switch
+            {
+                0 => "RemoteNetworkDevice",
+                1 => "Speakers",
+                2 => "LineLevel",
+                3 => "Headphones",
+                4 => "Microphone",
+                5 => "Headset",
+                6 => "Handset",
+                7 => "UnknownDigitalPassthrough",
+                8 => "SPDIF",
+                9 => "HDMI",
+                10 => "UnknownFormFactor",
+                _ => $"Unknown ({formFactor})"
+            };
+        }
+        catch
+        {
+            // Some OEM endpoints do not publish the optional form-factor property.
+            return "Unknown";
+        }
     }
 
     private static void ReadDefault(
