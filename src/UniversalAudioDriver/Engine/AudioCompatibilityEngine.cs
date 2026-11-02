@@ -8,6 +8,7 @@ public sealed record CompatibilityAssessment(
     string Result,
     string Explanation,
     IReadOnlyList<string> ParentDeviceIds,
+    AudioHardwareProfile HardwareProfile,
     IReadOnlyList<string> NextChecks);
 
 public sealed class AudioCompatibilityEngine
@@ -50,24 +51,17 @@ public sealed class AudioCompatibilityEngine
             else
             {
                 checks.Add($"PnP ancestry collected ({device.ParentDeviceIds.Count} parent device(s)); use these IDs to match bus and platform drivers.");
-                if (device.ParentDeviceIds.Any(id =>
-                        id.Contains("INTELAUDIO", StringComparison.OrdinalIgnoreCase)))
-                    checks.Add("Intel audio parent detected: verify the matching Intel Smart Sound Technology (SST) controller and DSP components.");
-                if (device.ParentDeviceIds.Any(id =>
-                        id.Contains("HDAUDIO", StringComparison.OrdinalIgnoreCase)))
-                    checks.Add("HDAudio parent detected: verify the codec-specific function driver and its matching topology/firmware package.");
-                if (device.ParentDeviceIds.Any(id =>
-                        id.Contains("ACPI", StringComparison.OrdinalIgnoreCase)))
-                    checks.Add("ACPI parent detected: platform-specific firmware/ACPI audio dependencies may be required.");
             }
 
-            if (device.Family.Contains("AMD Audio CoProcessor", StringComparison.OrdinalIgnoreCase))
-                checks.Add("Verify the AMD ACP platform driver and the codec/amplifier components paired with this laptop model.");
-
+            var profile = AudioHardwareProfilePlanner.Plan(device);
+            checks.AddRange(profile.PlatformDependencies.Select(dependency =>
+                $"Required dependency: {dependency}"));
+            checks.Add(profile.ImplementationStatus);
             checks.Add("Do not force-install a driver based only on a vendor name; a physical speaker path needs a matching controller, codec, amplifier and platform topology.");
+
             return new CompatibilityAssessment(
                 device.Name, device.Family, result, explanation,
-                device.ParentDeviceIds, checks);
+                device.ParentDeviceIds, profile, checks);
         }).ToArray();
     }
 }
