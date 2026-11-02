@@ -102,9 +102,29 @@ public sealed class SignedDriverPackageInstaller
 
     private static bool InfContainsHardwareId(string infContents, string hardwareId)
     {
-        // Match a complete ID token rather than a shortened vendor/product prefix.
-        return infContents.Contains(hardwareId, StringComparison.OrdinalIgnoreCase);
+        // Match a complete INF token, not a shortened vendor/product prefix.
+        var searchFrom = 0;
+        while (searchFrom < infContents.Length)
+        {
+            var index = infContents.IndexOf(
+                hardwareId, searchFrom, StringComparison.OrdinalIgnoreCase);
+            if (index < 0)
+                return false;
+
+            var end = index + hardwareId.Length;
+            var validStart = index == 0 || IsInfTokenBoundary(infContents[index - 1]);
+            var validEnd = end == infContents.Length || IsInfTokenBoundary(infContents[end]);
+            if (validStart && validEnd)
+                return true;
+
+            searchFrom = index + 1;
+        }
+
+        return false;
     }
+
+    private static bool IsInfTokenBoundary(char value) =>
+        char.IsWhiteSpace(value) || value is ',' or '"' or ';' or ']' or '=';
 
     private static DriverPackageInstallResult InstallPackage(
         string infPath,
