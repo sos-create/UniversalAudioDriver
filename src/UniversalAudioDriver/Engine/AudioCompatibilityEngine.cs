@@ -45,7 +45,8 @@ public sealed class AudioCompatibilityEngine
             return "Speaker amplifier / Smart Amp";
         }
 
-        if (new[] { "INTELAUDIO", "SMART SOUND", "SST", "AMD ACP", "AUDIO COPROCESSOR", "DSP" }
+        if (new[] { "INTELAUDIO", "SMART SOUND", "SST", "AMD ACP",
+                    "VEN_1022&DEV_15E2", "AUDIO COPROCESSOR", "DSP" }
             .Any(signature.Contains))
         {
             return "Audio controller / DSP";
@@ -91,12 +92,16 @@ public sealed class AudioCompatibilityEngine
         var acpiRoot = CreateTestDevice(
             "Generic ACPI Root Device", @"ACPI\\VEN_TEST&DEV_0001",
             "System", @"ACPI\\VEN_TEST&DEV_0001");
+        var amdAcp = CreateTestDevice(
+            "PCI Audio Controller", @"PCI\\VEN_1022&DEV_15E2",
+            "System", @"PCI\\VEN_1022&DEV_15E2");
 
         if (DetectComponentRole(amplifier) != "Speaker amplifier / Smart Amp" ||
             DetectComponentRole(dsp) != "Audio controller / DSP" ||
             DetectComponentRole(codec) != "Audio codec / serial audio component" ||
             DetectComponentRole(effects) != "Audio software / effects component" ||
-            DetectComponentRole(acpiRoot) != "Audio platform dependency")
+            DetectComponentRole(acpiRoot) != "Audio platform dependency" ||
+            DetectComponentRole(amdAcp) != "Audio controller / DSP")
         {
             throw new InvalidOperationException("Audio component role detection self-test failed.");
         }
