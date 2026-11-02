@@ -1,0 +1,49 @@
+name: Validate driver foundation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate-sysvad-source:
+    runs-on: windows-latest
+    steps:
+      - name: Check out UniversalAudioDriver
+        uses: actions/checkout@v4
+
+      - name: Check out pinned Microsoft SysVAD source
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/Windows-driver-samples
+          ref: f4c1ff842b6a0001152f44cb61788b216a1c7627
+          path: _external/Windows-driver-samples
+          sparse-checkout: |
+            audio/sysvad
+            wil
+          submodules: true
+          fetch-depth: 1
+
+      - name: Validate pinned source and required projects
+        shell: pwsh
+        run: |
+          $root = "_external/Windows-driver-samples/audio/sysvad"
+          $required = @(
+            "$root/sysvad.sln",
+            "$root/README.md",
+            "$root/EndpointsCommon/EndpointsCommon.vcxproj",
+            "$root/TabletAudioSample/TabletAudioSample.vcxproj"
+          )
+          foreach ($file in $required) {
+            if (-not (Test-Path $file)) {
+              throw "Required Microsoft SysVAD source file is missing: $file"
+            }
+          }
+          $solution = Get-Content "$root/sysvad.sln" -Raw
+          if ($solution -notmatch "TabletAudioSample") {
+            throw "SysVAD solution does not reference the expected audio sample project."
+          }
+          Write-Host "Pinned Microsoft SysVAD source tree validated."
+          Write-Host "This job validates source availability only; it does not claim a signed or hardware-ready driver."
