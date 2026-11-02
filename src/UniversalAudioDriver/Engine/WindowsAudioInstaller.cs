@@ -90,8 +90,12 @@ public sealed class WindowsAudioInstaller
             }
         }
 
-        if (defaultEndpointConfiguration?.SystemPlaybackDefaultChanged == true)
+        if (defaultEndpointConfiguration?.Attempted == true)
+        {
             endpoints = new CoreAudioEndpointDiscovery().ScanRenderEndpoints();
+            defaultEndpointConfiguration = WindowsDefaultAudioEndpointManager.VerifyReadback(
+                defaultEndpointConfiguration, endpoints);
+        }
 
         var defaultPlaybackReady = defaultEndpointConfiguration?.SystemPlaybackDefaultChanged == true;
         var status = windowsUpdateResult.RebootRequired
