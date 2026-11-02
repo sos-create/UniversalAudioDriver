@@ -68,15 +68,24 @@ internal static class Program
                     Console.WriteLine("Windows Update reports that a restart is required to finish driver installation.");
                 if (installReport.SpeakerTest.EndpointFound)
                     Console.WriteLine($"Built-in speaker endpoint: {installReport.SpeakerTest.EndpointName}");
+                if (installReport.DefaultPlaybackEndpoint is { } defaultPlayback)
+                {
+                    Console.WriteLine($"Windows default playback: {defaultPlayback.Status}");
+                    foreach (var role in defaultPlayback.RoleResults)
+                        Console.WriteLine($"  {role.Role}: {role.Status}");
+                }
                 Console.WriteLine(installReport.SpeakerTest.Result);
                 Console.WriteLine(installReport.NextStep);
                 Console.WriteLine($"Detailed report: {Path.GetFullPath(reportPath)}");
 
-                return installReport.SpeakerTest.TonePlayed
+                return installReport.SpeakerTest.TonePlayed &&
+                       installReport.DefaultPlaybackEndpoint?.SystemPlaybackDefaultChanged == true
                     ? 0
-                    : installReport.SpeakerTest.EndpointFound
-                        ? 3
-                        : installReport.WindowsUpdateDrivers.RebootRequired ? 4 : 2;
+                    : installReport.SpeakerTest.TonePlayed
+                        ? 5
+                        : installReport.SpeakerTest.EndpointFound
+                            ? 3
+                            : installReport.WindowsUpdateDrivers.RebootRequired ? 4 : 2;
             }
 
             if (args.Any(a => string.Equals(a, "--rescan-pnp", StringComparison.OrdinalIgnoreCase)))
