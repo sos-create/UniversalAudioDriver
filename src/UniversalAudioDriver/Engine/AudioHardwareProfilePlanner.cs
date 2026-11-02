@@ -54,8 +54,7 @@ public static class AudioHardwareProfilePlanner
         }
 
         if (signature.Contains("AMD AUDIO COPROCESSOR") ||
-            signature.Contains("AMD ACP") ||
-            signature.Contains("ACP"))
+            signature.Contains("AMD ACP"))
         {
             return Create(
                 "AMD Audio CoProcessor (ACP)",
@@ -144,6 +143,9 @@ public static class AudioHardwareProfilePlanner
         AssertArchitecture(
             CreateTestDevice(@"SDCA\01", Array.Empty<string>()),
             "SoundWire SDCA");
+        AssertArchitecture(
+            CreateTestDevice(@"HDAUDIO\FUNC_01&VEN_10EC", new[] { @"ACPI\VEN_INTEL&DEV_0001" }),
+            "High Definition Audio (HDA)");
         AssertArchitecture(
             CreateTestDevice(@"USB\VID_1234&PID_5678", Array.Empty<string>()),
             "USB Audio Class");
