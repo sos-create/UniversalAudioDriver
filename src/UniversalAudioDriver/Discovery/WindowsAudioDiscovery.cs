@@ -12,6 +12,7 @@ public sealed class WindowsAudioDiscovery
     {
         "AUDIO", "SOUND", "SST", "AMD ACP", "AUDIO COPROCESSOR",
         "VEN_1022&DEV_15E2", "VEN_1013", "VEN_101A", "VEN_14F1",
+        "VEN_CIRR", "VEN_RTK", "VEN_NVT", "VEN_MAX", "VEN_TI", "VEN_AKM",
         "VEN_11D4", "VEN_111D", "VEN_8384", "VEN_125D", "VEN_0D8C",
         "HDAUDIO", "SDCA",
         "SOUNDWIRE", "SLIMBUS", "I2S", "CODEC", "DSP", "SMART SOUND",
@@ -43,7 +44,11 @@ public sealed class WindowsAudioDiscovery
         "Name LIKE '%NXP Audio%' OR DeviceID LIKE '%VEN_1013%' OR " +
         "DeviceID LIKE '%VEN_14F1%' OR DeviceID LIKE '%VEN_11D4%' OR " +
         "DeviceID LIKE '%VEN_111D%' OR DeviceID LIKE '%VEN_8384%' OR " +
-        "DeviceID LIKE '%HDAUDIO%' OR DeviceID LIKE '%INTELAUDIO%' OR " +
+        "DeviceID LIKE '%VEN_CIRR%' OR DeviceID LIKE '%VEN_RTK%' OR " +
+        "DeviceID LIKE '%VEN_NVT%' OR DeviceID LIKE '%VEN_MAX%' OR " +
+        "DeviceID LIKE '%VEN_TI%' OR DeviceID LIKE '%VEN_AKM%' OR " +
+        "DeviceID LIKE '%VEN_10EC%' OR DeviceID LIKE '%HDAUDIO%' OR " +
+        "DeviceID LIKE '%INTELAUDIO%' OR " +
         "DeviceID LIKE '%SDCA%' OR DeviceID LIKE '%SOUNDWIRE%' OR " +
         "DeviceID LIKE '%SLIMBUS%' OR DeviceID LIKE '%I2S%' OR " +
         "Name LIKE '%Audio CoProcessor%' OR Name LIKE '%AMD ACP%' OR " +
