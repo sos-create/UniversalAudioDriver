@@ -11,7 +11,9 @@ public sealed class WindowsAudioDiscovery
     private static readonly string[] AudioParentMarkers =
     {
         "AUDIO", "SOUND", "SST", "AMD ACP", "AUDIO COPROCESSOR",
-        "VEN_1022&DEV_15E2", "HDAUDIO", "SDCA",
+        "VEN_1022&DEV_15E2", "VEN_1013", "VEN_101A", "VEN_14F1",
+        "VEN_11D4", "VEN_111D", "VEN_8384", "VEN_125D", "VEN_0D8C",
+        "HDAUDIO", "SDCA",
         "SOUNDWIRE", "SLIMBUS", "I2S", "CODEC", "DSP", "SMART SOUND",
         "ALC", "RT56", "RT55", "RT101", "CS35", "CS42", "CS47",
         "CX807", "CX118", "WCD", "NAU88", "ES83", "ES85",
@@ -35,6 +37,12 @@ public sealed class WindowsAudioDiscovery
         "Name LIKE '%CX118%' OR Name LIKE '%WCD%' OR Name LIKE '%TAS27%' OR " +
         "Name LIKE '%MAX983%' OR Name LIKE '%DA721%' OR Name LIKE '%Synaptics%' OR " +
         "Name LIKE '%Nuvoton%' OR Name LIKE '%Wolfson%' OR Name LIKE '%Everest%' OR " +
+        "Name LIKE '%ESS Technology%' OR Name LIKE '%Analog Devices%' OR " +
+        "Name LIKE '%IDT Audio%' OR Name LIKE '%Qualcomm%' OR Name LIKE '%MediaTek%' OR " +
+        "Name LIKE '%AKM%' OR Name LIKE '%VIA HD%' OR Name LIKE '%C-Media%' OR " +
+        "Name LIKE '%NXP Audio%' OR DeviceID LIKE '%VEN_1013%' OR " +
+        "DeviceID LIKE '%VEN_14F1%' OR DeviceID LIKE '%VEN_11D4%' OR " +
+        "DeviceID LIKE '%VEN_111D%' OR DeviceID LIKE '%VEN_8384%' OR " +
         "DeviceID LIKE '%HDAUDIO%' OR DeviceID LIKE '%INTELAUDIO%' OR " +
         "DeviceID LIKE '%SDCA%' OR DeviceID LIKE '%SOUNDWIRE%' OR " +
         "DeviceID LIKE '%SLIMBUS%' OR DeviceID LIKE '%I2S%' OR " +
