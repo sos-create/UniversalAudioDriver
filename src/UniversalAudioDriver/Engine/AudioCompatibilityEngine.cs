@@ -144,9 +144,13 @@ public sealed class AudioCompatibilityEngine
             {
                 checks.Add("The Windows PnP parent chain was unavailable; inspect the device in Device Manager.");
             }
+            else if (device.ParentHardwareIds.Count > 0 || device.ParentCompatibleIds.Count > 0)
+            {
+                checks.Add($"PnP ancestry collected ({device.ParentDeviceIds.Count} parent device(s)) with {device.ParentHardwareIds.Count} parent hardware ID(s) and {device.ParentCompatibleIds.Count} parent compatible ID(s).");
+            }
             else
             {
-                checks.Add($"PnP ancestry collected ({device.ParentDeviceIds.Count} parent device(s)); use these IDs to match bus and platform drivers.");
+                checks.Add($"PnP ancestry collected ({device.ParentDeviceIds.Count} parent device(s)), but Windows did not return their hardware IDs; only instance topology is available for these parents.");
             }
 
             var profile = AudioHardwareProfilePlanner.Plan(device);
