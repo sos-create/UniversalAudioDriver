@@ -43,6 +43,7 @@ public sealed class CoreAudioEndpointDiscovery
                     .Where(pair => string.Equals(pair.Value, device.ID, StringComparison.OrdinalIgnoreCase))
                     .Select(pair => pair.Key));
                 var formFactor = ReadFormFactor(device);
+                var controllerDeviceId = ReadControllerDeviceId(device);
 
                 endpoints.Add(new AudioEndpointInfo(
                     device.FriendlyName,
@@ -52,7 +53,8 @@ public sealed class CoreAudioEndpointDiscovery
                     isDefault,
                     muted,
                     volume,
-                    formFactor));
+                    formFactor,
+                    controllerDeviceId));
             }
         }
 
@@ -89,6 +91,20 @@ public sealed class CoreAudioEndpointDiscovery
         {
             // Some OEM endpoints do not publish the optional form-factor property.
             return "Unknown";
+        }
+    }
+
+    private static string? ReadControllerDeviceId(MMDevice device)
+    {
+        try
+        {
+            var property = device.Properties[PropertyKeys.PKEY_Device_ControllerDeviceId];
+            return Convert.ToString(property?.Value)?.Trim();
+        }
+        catch
+        {
+            // Not every audio endpoint exposes the optional controller-link property.
+            return null;
         }
     }
 
