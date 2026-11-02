@@ -227,6 +227,20 @@ public static class AudioHardwareProfilePlanner
         var realtekProfile = Plan(CreateNamedTestDevice(
             "Realtek ALC295 codec",
             @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0295"));
+        var cirrusIdOnlyProfile = Plan(CreateNamedTestDevice(
+            "High Definition Audio Device",
+            @"HDAUDIO\FUNC_01&VEN_1013&DEV_4208"));
+        if (!cirrusIdOnlyProfile.PlatformDependencies.Any(value =>
+                value.Contains("CS4208", StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("Cirrus CS4208 hardware-ID-only profile self-test failed.");
+
+        var realtekIdOnlyProfile = Plan(CreateNamedTestDevice(
+            "High Definition Audio Device",
+            @"HDAUDIO\FUNC_01&VEN_10EC&DEV_0256"));
+        if (!realtekIdOnlyProfile.PlatformDependencies.Any(value =>
+                value.Contains("Realtek", StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("Realtek hardware-ID-only profile self-test failed.");
+
         if (!realtekProfile.PlatformDependencies.Any(value =>
                 value.Contains("Realtek ALC series", StringComparison.OrdinalIgnoreCase)))
             throw new InvalidOperationException("Realtek ALC codec profile self-test failed.");
